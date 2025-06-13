@@ -65,11 +65,54 @@
 \usepackage{microtype}
 \usepackage[autostyle]{csquotes}% \enquote, to simplify use of quotation marks
 
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{mathtools}
+\usepackage{hyperref}
+\usepackage{todonotes}
+\setuptodonotes{inline}
+\usepackage{braket}
+\usepackage{accents}
+\usepackage{bm}
+\usepackage{marvosym}
+
+
+%\usepackage{braket}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage[title]{appendix}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{physics} 
+\usepackage{amsfonts}
+\usepackage{tikz}
+\usepackage{lipsum}
+\usepackage{subcaption}
+
+
+\usepackage{tikz}
+\usepackage{lipsum}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corollary}
+\newtheorem{definition}{Definition}
+\newtheorem{observation}{Observation}
+\newtheorem{folklore}{Folklore}
+\newtheorem{exampl}{Example}
+%----------------Commenting------------------------------
+\definecolor{jan}{rgb}{.8,.2,.2}
+\newcommand{\jan}[1]{{\color{jan} #1}}
+\definecolor{mari}{rgb}{1.0, 0.0, 0.22}
+\newcommand{\mari}[1]{{\color{mari} #1}}
+
 %%%%%%%%%%%%%%%%%%%
 % Bibliography
 %%%%%%%%%%%%%%%%%%%
 \usepackage{biblatex}
-\addbibresource{DEMO-TUDaBibliography.bib}% File name of BibTeX database
+\addbibresource{refs.bib}% File name of BibTeX database
 
 %%%%%%%%%%%%%%%%%%%
 % Package suggestions for tables
@@ -87,30 +130,37 @@
 %\usepackage{amssymb}% Additional symbols
 %\usepackage{siunitx}% Numbers and Units
 
-\hypersetup{% Metadata adjustments, in case these are not set, the data provided for \maketitle will be used
-	pdfauthor=Marei Peischl (peiTeX),
-	pdftitle=TUDaPhD – LaTeX-Dissertationstemplate im CD der TU Darmstadt (en),
-	pdfcreationdate=2024-05-03,
-	pdfkeywords={TU Darmstadt; Corporate Design; LaTeX}
-}
+\usepackage{graphicx}
+\graphicspath{{images/}}
+\usepackage{acronym}
+\usepackage{subfiles}
 
-\title{TUDaPhD -- \LaTeX-Dissertationstemplate im CD der TU Darmstadt (en)}
-\subtitle{\LaTeX{} im Corporate Design der TU Darmstadt}
-\author{Marei Peischl}
+%%%%%%%%%%%%%%%%%%%%%%%%
+% custom definitions
+%%%%%%%%%%%%%%%%%%%%%%%%
+%\newcommand{\expval}[1]{\langle #1 \rangle}
+%\newcommand{\expect}[2]{\langle #1 | #2 | #1 \rangle}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{My PhD Thesis TBA}
+\subtitle{Something about quantum}
+\author{Anna Schroeder}
+\birthplace{Darmstadt, Germany}
 \reviewer{Reviewer 1 \and Reviewer 2 \and …}
 % For further customization
 %\reviewer*[Supervisor, Reviewer]{Supervisor 1 \and Reviewer 2}
 
-%\publishers{Darmstadt, Technische Universität Darmstadt}
+\publishers{Darmstadt, Technische Universität Darmstadt}
 % For location or publisher. It is predefined as “Darmstadt, Technische Universität Darmstadt” as required by the library.
 
 % If the default setting does not match your intention, it's possible to overwrite block below the title:
 %\drtext{}
 
 % The following elements will be placed on the title page
-\department{phys}% If defined the shorthand will be replaced by the full name otherwhise it's used directly.
-\institute{Institute}
-\group{Group}
+\department{inf}% If defined the shorthand will be replaced by the full name otherwhise it's used directly.
+%\institute{Fachberech Informatik}
+\group{Quantum Computing Group}
 
 \submissiondate{\today}
 \examdate{\today}
@@ -124,6 +174,8 @@
 \frontmatter
 
 \maketitle
+
+
 
 \affidavit% Please ensure you use the correct version.
 \begin{abstract}
@@ -139,11 +191,34 @@
 
 \mainmatter
 
-\addchap{About this file}
 
-\enquote{DEMO-TUDaPhD.tex} is a basic template for PhD theses using the Corporate Design of TU Darmstadt.
-It is part of TUDa-CI, which is the official template bundle of TU Darmstadt. The original version was inspired by the \enquote{tuddesign} bundle by C.~v.~Loewenich and J.~Werner.
+\chapter{Introduction}
+\subfile{sections/introduction}
 
+\chapter{Theoretical background}
+\chapter{NISQ}
+
+\subfile{sections/mbvqe}
+
+\section{Applications of VQE}
+\subsection{Chemistry}
+\subsubsection{Quantum-enhanced AFQMC}
+\subsection{NLP}
+
+\chapter{Early-Fault tolerant QC}
+\section{What is early-fault tolerant QC}
+\section{Randomized methods for depth and sample trade-off}
+\section{Benchmarking on chemical test systems}
+
+\chapter{Benchmarking Quantum Computer with Automata Advantage}
+\subfile{sections/automata}
+\section{Automata theory and promise problems}
+\section{State succinctness of finite promise problems}
+\subsection{Certification of Quantum Computing with promise problems}
+
+\appendix
+% Include the acronym file
+\subfile{acronyms}
 
 \printbibliography
 

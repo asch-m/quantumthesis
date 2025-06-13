@@ -1,0 +1,537 @@
+\documentclass[../main.tex]{subfiles}
+\graphicspath{{\subfix{../images}}}
+\begin{document}
+
+\begin{itemize}
+    \item make the theory intro complete
+    \item knwon promise prblems (unary and diof)
+    \item QSQ description
+    \item promise problem from a target QFA
+    \item minimality 
+    \item generalized promise problems (multi qubit, higher dim unary, mub mapping)
+    \item rewrite the intro
+\end{itemize}
+
+\section{Introduction}
+In automata theory, promise problems, an extension of traditional language recognition where the input is guaranteed to belong to a specific subset of strings, have been predominantly explored in the setting of quantum automata. Over many years, various flavors of promise problems were proposed where quantum automatons give an advantage over the classical counterpart.  Classic examples of promise problems which a quantum computer solves faster than any classical computer are the Deutsch-Jozsa~\cite{deutsch1992rapid}, Simon's~\cite{simon1997power}, and Shor's period-finding problems~\cite{shor1994algorithms}. Here, a quantum computer can demonstrate advantage by achieving exponential reductions in query complexity compared to classical algorithms. Such quantum advantages can serve as tests of quantumness, especially when the problems are designed so that classical algorithms cannot efficiently exploit the promise. Although Shor's algorithm offers a strong theoretical benchmark, practical tests of quantumness often rely on smaller-scale promise problems that are easier to implement and verify on near-term quantum devices.
+
+In this direction, over the past two decades, researchers have explored memory-limited promise problems, where quantum automata outperform the classical one even at small system sizes\cite{ambainis2012superiority} \mari{cite more papers}. A prominent example is the EQ$^*$ problem, where the input is a binary string promised to either have an equal number of $0$'s and $1$'s or differ by a fixed margin. While a quantum finite automaton (QFA) with only a constant number of quantum states (a qutrit) can solve this problem deterministically, any classical deterministic or probabilistic finite automaton (DFA or PFA) would require memory that scales with the input length~\cite{}\mari{cite!}. These results highlight a different kind of quantum advantage, a separation in space complexity, and offer a path toward demonstrating quantumness in low-resource regimes where full quantum algorithms may not yet be feasible. \textit{Can such an advantage be used to test the correct functioning of quantum devices in question?} 
+
+Similar questions have previously been explored in fully device-independent settings, specifically within the framework of multi-prover and verifier interactions, commonly referred to as the Bell game~\cite{bell1964einstein, brunner2014bell}. In this scenario, the quantum advantage, given by the maximal winning probability~\cite{cirel1980quantum}, enables sound certification (i.e., self-testing~\cite{vsupic2020self}), of the maximally entangled state and the anticommuting measurement settings. The self-testing is the strongest notion of certification as it uniquely identifies the inner-workings of the quantum devices in the experiment up to the basis choice.
+Recently, some of us proposed \textit{Quantum System Quizzing }(QSQ), the first sound and robust certification protocol for quantum gates in a semi-device-independent setting, under the assumption of bounded quantum memory~\cite{noller2024classical,noller2024self}. In the QSQ protocol, several simple instances of question sets (quizzes) are constructed that a multi-qubit quantum computer can answer correctly, but no classical computer with the same memory capacity can solve. Thus, the QSQ protocol relies on dimension advantage that quantum devices offer.  
+
+In this contribution, we establish that all the quizes considered in the certification protocol are instances of promise problems that separate quantum and classical bounded-memory devices. We shift the attention to the theory of the promise problems and deterministic finite automata to identify sets of sequences which one the one hand give a higher dimension separation, but can also result into self testing protocols. This way we provide a practical framework for certifying quantum advantage under realistic constraints in a more general framework. 
+We start analysis from a single-qubit quantum finite automata and extend the results to the multi-qubit and a higher dimensional cases. Next, in order to discuss the robustness of the protocol, we discuss the separation between noisy quantum and a probabilistic finite automata (PFA). \mari{Add results as they appear.}
+
+
+The paper is organized as follows: Section~\ref{preliminaries} contains preliminaries to Promise Problems and the QSQ protocol. 
+
+\section{Deterministic finite state automata and quantum finite state automata}~\label{preliminaries}
+
+
+Automata theory is a major discipline in theoretical computer science with many renowned reference sources (\todo{find them}). \todo{add sentences describing what is typically studied in automata theory} 
+We align our notations with reference \cite{zheng2017promise}, which delivers a comprehensive review of quantum finite state automata, especially regarding state complexity advantages, also called succinctness, of promise problems. First, we introduce the formal definition of deterministic finite automata (DFA)
+\begin{definition}\label{def:dfa} A deterministic finite automaton (DFA) $\mathcal{A}$ is specified by a 5-tuple 
+\begin{equation}
+    \mathcal{A} = (S, \Sigma, \delta, s_0, S_a) \, ,
+\end{equation}
+where $S$ is the finite set of states; $\Sigma$ the finite set of input symbols; $s_0 \in S$ the initial state; $S_a \subseteq S$ the set of accepting states, and $\delta$ the transition function $\delta: S \times \Sigma \rightarrow S$ specifying the state transition given an input symbol $\sigma \in  \Sigma$ and the current state. Any path induced by $\delta$ and the input string, also called word, $w \in \Sigma^*$ is deterministic.
+\end{definition}
+A graphical description of Def. \ref{def:dfa} is given in Fig. (\todo{draw example}). 
+Every DFA $\mathcal{A}$ describes a language $L$, a set of words 
+\begin{definition} A DFA $\mathcal{A}$ defines a language $L$
+    \begin{equation}
+    L(\mathcal{A}) = \{ w | \delta(s_o,w) \in S_a, w \in \Sigma^* \} \, .
+\end{equation}
+\end{definition}
+Inversely, we can also ask if a specific DFA recognizes a language $L$
+\begin{definition} (Language recognition)
+    A language $L$ over an alphabet $\Sigma$ is \textit{recognized} by a DFA $\mathcal{A}$ if for every $w \in \Sigma^*$
+    \begin{equation}
+        w \in L \iff \delta (s_0,w) \in S_a
+    \end{equation}
+    \begin{equation}
+        w \notin L \iff \delta (s_0,w) \notin S_a \quad .
+    \end{equation}
+\end{definition}
+
+It has been shown that quantum generalizations of DFAs do not exhibit advantages regarding the recognition power of languages (\todo{cite}), but advantages in state complexities of \textit{promise problems}, a constrained version of the language recognition problem. Let us first introduce the promise version DFA (pvDFA)
+\begin{definition}
+    A promise version deterministic finite automaton is specified by a 6-tuple 
+    \begin{equation}
+        \mathcal{A} = (S, \Sigma, \delta, s_0, S_{yes}, S_{no})
+    \end{equation} where $S_{yes}$ and  $S_{no}$ are sets of states with $S_{yes} \cap S_{no} = \emptyset$ and $S_{yes} \cup S_{no} \subseteq S$. Definitions of the remaining symbols are given in Def.~\ref{def:dfa}.
+\end{definition}
+As we exclusively study promise version DFAs in this work, we refer to pvDFA simply as DFA.
+While language recognition can be a subject of research for promise problem as well, i.e., given the entire 
+\begin{definition}
+    A promise problem $A = (A_{yes}, A_{no})$, with $A_{yes} \cap A_{no} = \emptyset$ and $A_{yes} \cup A_{no} \subseteq \Sigma^*$ is solved by a DFA $\mathcal{A}$ if for every $w \in A_{yes} \cup A_{no} $ it holds
+    \begin{equation}
+        w \in A_{yes} \Rightarrow \delta(s_0, w) \in S_{yes}
+    \end{equation}
+    \begin{equation}
+        w \in A_{no} \Rightarrow \delta(s_0, w) \in S_{no} \quad .
+    \end{equation}
+\end{definition}
+A popular example of such a promise problem is given by $\mathtt{EVENODD^k}$ \cite{rashid2014implications} due to its compelling succinctness result for quantum finite automata \cite{ambainis2012superiority}.
+\begin{definition}
+    The promise problem $\mathtt{EVENODD^k} = (\mathtt{EVENODD^k_{yes}}, \mathtt{EVENODD^k_{no}})$ comprises following sets of unary input strings
+    \begin{equation}
+        \mathtt{EVENODD^k_{yes}} = \{ \sigma^{i2^k} | i \in \mathbb{Z}_{\geq 0,\,\mathrm{even}} \}
+    \end{equation}
+    \begin{equation}
+        \mathtt{EVENODD^k_{no}} = \{ \sigma^{i2^k} | i \in \mathbb{Z}_{\geq 0,\,\mathrm{odd}} \}
+    \end{equation}
+\end{definition}
+Along $\mathtt{EVENODD^k}$, we will get accustomed to the computational power of unary DFAs.
+\begin{theorem}\label{theorem:originalpp}
+A DFA that solves the promise problem $\mathtt{EVENODD^k}$ requires at least $2^{k+1}$ states.
+\end{theorem}
+\begin{proof}
+    Since DFAs only allow deterministic transitions, i.e., a unique transition leaving each state, every unary DFA consists of an initial ``tail'' with length $t$ before entering a ``loop'' with length $l$; $t + l = |S|$. $t$, as well as $l$, may be set to zero, although in case of input strings length larger than $|S|$, $l$ at least one to ensure well-defined outputs for such strings. Such a unary DFA implements a modulo $l$ operation with offset $t$ on the length of the input string. Hence, $\mathtt{EVENODD^k}$ is solved if a DFA $\mathcal{A}$ can ensure 
+\begin{equation}\label{eq:modcond}
+    \{ (i2^k - t)\bmod{l} \,|\, i \in \mathbb{Z}_{\geq 0,\,\mathrm{even}} \} \cap
+    \{ (i2^k - t)\bmod{l} \,|\, i \in \mathbb{Z}_{\geq 0,\,\mathrm{odd}} \} = \emptyset .
+\end{equation} 
+First we show that a DFA with $l = 2^{k+1}$ and $t=0$ indeed solves $\mathtt{EVENODD^k}$. 
+
+Since,
+\begin{align}
+    \{ i\cdot2^k\bmod{2^{k+1}} \,|\, i \in \mathbb{Z}_{\geq 0,\,\mathrm{even}} \} &= 
+    \{j \cdot 2^{k+1} \bmod{2^{k+1}} \,|\, j \in \mathbb{Z}_{\geq 0} \} \\ &= \{0, 0, \dots\}  \\
+    \{ i\cdot2^k\bmod{2^{k+1}} \,|\, i \in \mathbb{Z}_{\geq 0,\,\mathrm{odd}} \} &= 
+    \{(j \cdot 2^{k+1} - 2^{k})\bmod{2^{k+1}} \,|\, j \in \mathbb{Z}_{\geq 0} \} \\ &= \{2^{k}, 2^{k}, \dots\}    
+\end{align} 
+
+Eq.~\ref{eq:modcond} is clearly fulfilled and a DFA $\mathcal{A}$ with $S_{yes} = \{s_0\}$ and  $S_{no} = \{s_{2^k}\}$ categorizes the tested input strings correctly.
+
+Next, let us study tail-free DFAs with $|S| < 2^{k+1}$. First, consider the case of $l$ odd. The input sequence with length $l \cdot 2^{k}$ is contained in $\texttt{EVENODD}_{no}^{k}$. Since $l \cdot 2^{k} \bmod{l} = 0$ but $0 \in \texttt{EVENODD}_{yes}^{k}$ always, this fails to solve the promise problem.
+For $l$ even, we factorize $l$ into $l = 2^{n} \cdot p$, where $p$ consists of only odd factors. If $p = 1$, $l$ divides $2^k$ such that sequences from both sets will be sent to the accepting state. For $p \neq 1$, we observe that the sequence with length $p\cdot2^k = p \cdot 2^n \cdot 2^{k-n} \in \texttt{EVENODD}_{no}^{k}$ which can be divided by $l$, causing a contradiction, too. Hence, no tail-free DFAs with  $|S| < 2^{k+1}$ solve this promise problem.
+
+In the following, we assume $t \neq 0$. The tail has two effects on the outputs of the DFA; $t$ introduces a constant offset in the outputs of the DFA $i \cdot 2^k - t \bmod l = i \cdot 2^k\bmod l - t \bmod l$ and secondly sends sequences with length $\leq t$ to distinct states which can be labelled freely. By applying similar argumentations as the tail-free case, we can show that there is no DFA with $|S| < 2^{k+1}$ solving the promise problem.
+
+First, consider $l$ odd. Then, $l \cdot 2^{k} \in \texttt{EVENODD}_{no}^{k}$ and  $l \cdot 2^{k} - t \bmod l = - t \bmod l$. Likewise, we know that $2 \cdot l \cdot 2^{k} \in \texttt{EVENODD}_{yes}^{k}$ and $2\cdot l \cdot 2^{k} - t \bmod l = - t \bmod l$.
+
+If $l$ even, we again consider $l = 2^{n} \cdot p$. Then, 
+$p \cdot 2^n \cdot 2^{k-n} - t \bmod l = - t \bmod l$. However $2 \cdot p \cdot 2^n \cdot 2^{k-n} \in \texttt{EVENODD}_{yes}^{k}$ with same output $- t \bmod l$.
+
+The smallest DFA solving $\mathtt{EVENODD^k}$ indeed $|S| = 2^{k+1}$ with $l = 2^{k+1}$. A DFA with tail $t \neq 0$ still requires a loop with $l = 2^{k+1}$.
+\end{proof}
+
+$\mathtt{EVENODD^k}$ is a costly task in the DFA setting. Next, we introduce the \textit{quantum finite state automaton} (QFA), more specifically the \textit{measure-once quantum finite state automaton} (MO-QFA) and reconstruct the result from Ref.~\cite{ambainis2012superiority} that showed that QFAs need only a constant number of states to solve $\mathtt{EVENODD^k}$, which is precisely 2.
+
+\begin{definition}
+The measure-once quantum finite state automaton (MO-QFA) $\mathcal{M}$ is specified by a 6-tuple
+\begin{equation}
+    \mathcal{M} = (Q, \Sigma, \{U_\sigma \,|\, \sigma \in \Sigma \}, \ket{0}, Q_{yes}, Q_{no}) ,
+\end{equation}
+where $Q = \{\, \ket{i} \,|\, 0\leq i\leq|Q|\,\}$ is the finite set of orthonormal quantum states, $\Sigma$ the finite set of input symbols, $U_\sigma$ unitary operator analogous to the classical transition functions, $\ket{0}$ the initial state and finally the yes- and no-labeled states $Q_{yes}$ and $Q_{no}$. An input string $w = \sigma_1 \sigma 2, \dots,\sigma_n$ initiates the application of the unitary gates $U_w = U_{\sigma_n}\cdots U_{\sigma_2} U_{\sigma_1} $ which map the initial state to $\ket{\psi_w} = U_w \ket{0}$. The membership of $\ket{\psi_w}$ is evaluated through the projective operators $P_{yes} = \sum_{\ket{i} \in Q_{yes}} \ket{i} \bra{i}$ and $P_{no} = \sum_{\ket{i} \in Q_{no}} \ket{i} \bra{i}$.
+\end{definition}
+Note that we immediately introduced the promise version of the MO-QFA.
+We can next construct a simple example that solves $\mathtt{EVENODD}_k$ succinctly \cite{ambainis2012superiority,geffert2014classical,rashid2014implications}.
+\begin{theorem}
+ An MO-QFA can solve $\mathtt{EVENODD}_k$ with $|Q| = 2$.
+\end{theorem}
+\begin{proof}
+    Consider the following MO-QFA
+    \begin{align}
+        \mathcal{M} = ( Q &= \{\ket{+},\,\ket{-} \},\, \Sigma = \{\sigma\}, \{U_\sigma\},\, \ket{0},\, \\ Q_{yes} &= \{\ket{+}\},\, Q_{no} = \{\ket{-}\} ) 
+    \end{align}
+    \begin{equation}
+        U_\sigma = \sqrt[2^k]{Z} = 
+        \begin{pmatrix}
+            1 & 0\\ 
+            0 & \sqrt[2^k]{-1}
+\end{pmatrix}.  
+    \end{equation}
+    Then, $U_\sigma^{i\cdot2^k} = I$ for $i$ even and $U_\sigma^{i\cdot2^k} = Z$ for $i$ odd. Thus, the initial state $\ket{+}$ will be mapped to the respective outcomes of the promise problem $\mathtt{EVENODD}_k$.
+\end{proof}
+
+\section{Generalization and Variations of $\mathtt{EVENODD}_k$} 
+
+
+\subsection{Non-unary promise problems: $\texttt{DIOF}$}
+
+Ref.~\cite{bianchi2014complexity} discusses a further generalization of $\mathtt{EVENODD}_k$ which its non-unary extension $\mathtt{DIOF^{a,N}_{r_1,r_2}}$.
+
+\begin{definition}
+    The promise problem $\mathtt{DIOF^{a,N}_{r_1,r_2}}=(\mathtt{DIOF^{a,N}_{r_1,r_2,yes}},\mathtt{DIOF^{a,N}_{r_1,r_2,no}})$ comprises following sets of multi-letter input strings
+    \begin{align}
+       \mathtt{DIOF^{a,N}_{r_1,r_2,yes}} = \{ w \in \Sigma^* | (a_1|w|_{\sigma_1} + a_2|w|_{\sigma_2} + \dots + a_H|w|_{\sigma_H}) \equiv r_1 \bmod{N}\} \\
+        \mathtt{DIOF^{a,N}_{r_1,r_2,no}} = \{ w \in \Sigma^* | (a_1|w|_{\sigma_1} + a_2|w|_{\sigma_2} + \dots + a_H|w|_{\sigma_H}) \equiv r_2 \bmod{N}\},
+    \end{align}
+    where the alphabet consists of $H$ letters $\Sigma = (\sigma_1, \dots, \sigma_H)$ with  associated weights $a= (a_1, \dots, a_H)$. Promised input sequences are solutions to some diophantine equations.
+\end{definition}
+In the following, we discuss a specific incarnation of $\mathtt{DIOF^{a,N}_{r_1,r_2}}$ to maintain the intuition of the promise problems in the quantum case, i.e., the realization of solutions with $2^k$-th root of the $Z$-gate. This is the case for $N=2^{k+1}$, $r_1 = 0$, $r_2 = 2^k$, $H = k$, and $a = (1,2^1,\dots, 2^{k-1})$. We refer to this setting as $\mathtt{DIOF^{k}}$.
+
+\begin{theorem}
+    A DFA that solves the promise problem $\mathtt{DIOF^{k}}$ requires at least $2^{k+1}$ states.
+\end{theorem}
+
+\begin{proof}
+    We associate $\sigma_1$ with the single letter in the unary problem $\mathtt{EVENODD_k}$. Input sequences from $\mathtt{EVENODD_k}$ are clearly included in $\mathtt{DIOF^{k}}$, so the lower bound on the state complexity is already known. Left to show is that $2^{k+1}$ states are enough to accommodate for non-unary input sequences. $\sigma_1$ induces a cycle with length $2^{k+1}$. The DFA solves the promise problem if the transition function of other letters are given accordingly to the weights $a_i$, $s_n \xrightarrow{\sigma_i} s_{n+a_i}$.
+\end{proof}
+
+\begin{theorem}
+    An MO-QFA can solve $\mathtt{DIOF^{k}}$ with $|Q|=2$.
+\end{theorem}
+
+\begin{proof}
+    Consider again the MO-QFA 
+      \begin{align}
+        \mathcal{M} = ( Q &= \{\ket{+},\,\ket{-} \},\, \Sigma = \{\sigma\}, \{U_\sigma\},\, \ket{0},\, \\ Q_{yes} &= \{\ket{+}\},\, Q_{no} = \{\ket{-}\} ) 
+    \end{align}
+    \begin{equation}
+        U_{\sigma_1} = \sqrt[2^k]{Z} = 
+        \begin{pmatrix}
+            1 & 0\\ 
+            0 & \sqrt[2^k]{-1}
+\end{pmatrix}.  
+    \end{equation} Additionally, we define further unitaries
+    \begin{equation}
+        U_{\sigma_2} = \sqrt[2^{k-1}]{Z}, \dots, U_{\sigma_{k}} = \sqrt{Z}.
+    \end{equation}   
+    The weights faithfully represent the conversion of each letter $\sigma_i$ to $\sigma_1$, and since all operators commute this MO-QFA solves $\mathtt{DIOF^{k}}$.
+\end{proof}
+
+
+\section{Quantum-inspired promise problems}
+
+We have reviewed promise problems that have been studied in the past in the context of state complexity advantages between DFAs and MO-QFAs. Starting from such problems, we can formulate further promise problems from known quantumly simple modifications.
+
+We suspect that finding the minimal state automaton that solves the promise problem is closely related to the "separating words problem" \cite{robson1989separating, demaine2011remarks,chase2020new}.
+
+\subsection{Generalized promise problems}
+
+Up to now, we have looked at promise problems, which are, per definition, dichotomic. 
+Can we alter the state dimension gap between classical and quantum DFA by moving to multichotomous promise problems? In the quantum quizzing protocol, only sequences with finite length can be executed to remain practicable. How does the limitedness of the input sequences change the succinctness of required DFAs?  We define such a promise problem by expanding the previous $\mathtt{EVENODD}_k$.
+
+\subsection{Multichotomous promise problems}
+\begin{definition}
+    The generalized promise problem $\mathtt{GEVENODD}^r_q = (\mathtt{GEVENODD}^r_0,\mathtt{GEVENODD}^r_1, \dots, \mathtt{GEVENODD}^r_{r-1})$ with $q$ prime comprises the following unary input strings
+    \begin{align}
+       \mathtt{GEVENODD}^r_0 &= \{ \sigma^{i\cdot r} | i \equiv 0\ (\bmod q)\} \\
+       \mathtt{GEVENODD}^r_1 &= \{ \sigma^{i\cdot r} | i \equiv 1\ (\bmod q)\} \\
+       &\vdotswithin{=} \notag \\
+       \mathtt{GEVENODD}^r_{q-1} &= \{ \sigma^{i\cdot r} | i \equiv q-1\ (\bmod q )\}
+    \end{align}
+\end{definition}
+
+\begin{theorem}
+    The generalized promise problem $\mathtt{GEVENODD}^r_q$ can be solved with a $4+q$-tupled DFA $\mathcal{A} = (S,\Sigma,\delta,s_0,S_0,\dots,S_{q-1})$ with
+    \begin{equation}
+        |S| = q^{m_q + 1},
+    \end{equation}
+    where $m_q$ the multiplicity of the prime factor $q$ in $r$.
+\end{theorem}
+
+\begin{proof}
+    Analogous to the proof of Theorem \ref{theorem:originalpp}. If $r$ and $q$ are co-prime, a $\bmod \,q $ operation on the input sequence length is enough to differentiate $\mathtt{GEVENODD}^r_0, \dots,\mathtt{GEVENODD}^r_{q-1}$. This is no longer the case if $q$ occurs in the prime factors of $r$. Express $r = r'\cdot q^{m_q}$, we are looking for $l$ such that $\{ (n\cdot q + 0)\cdot r'\cdot q^{m_q} \bmod{l}\}\cap\{ (n\cdot q + 1)\cdot r'\cdot q^{m_q} \bmod{l}\}\cap\{ (n\cdot q + 2)\cdot r'\cdot q^{m_q} \bmod{l}\} \cap \dots \cap \{ (n\cdot q + q -1)\cdot r'\cdot q^{m_q}\bmod{l} \} = \emptyset$ for all $n\in \mathbb{N}$. 
+    
+    This is given by $ l = q^{m_q + 1}$: 
+    \begin{align*}
+        \{ (n\cdot q + 0)\cdot r'\cdot q^{m_q} \bmod q^{m_q+1} \equiv 0 \}&\cap
+        \{(n\cdot q + 1)\cdot r'\cdot q^{m_q} \bmod q^{m_q + 1} \equiv m \} \\ \cap 
+        \{(n\cdot q + 2)\cdot r'\cdot q^{m_q} \bmod{q^{m_q + 1}} \equiv 2\cdot m \} 
+        \cap\dots &\cap \{(n\cdot q + q-1)\cdot r'\cdot q^{m_q} \bmod{q^{m_q + 1}} \equiv (q-1)\cdot m\}
+    \end{align*}
+    Left to show is that $0 \not\equiv m \not\equiv \dots \not\equiv (q-1)\cdot m$. Note that $ a \equiv b \bmod c \iff k\cdot a \equiv k\cdot b \bmod k\cdot c$. Hence, we can reduce $m \equiv r'\cdot q^{m_q} (\bmod q^{m_q+1})$ to $m' \equiv r' (\bmod q)$. For multiples of $r'$, it holds
+    \begin{align*}
+        u \cdot r' \equiv v \cdot r'  \Rightarrow (u - v)\cdot r' \equiv 0 ,
+    \end{align*}
+    and $r'$ and $q$ co-prime by definition. For $u,v < q$, the only solution is $u =w$. Which shows that $\bmod{ q^{m_q + 1}}$ solves the promise problem. Any smaller choice of the modulus $l$ causes a contradiction because $l\cdot r \equiv 0$ but $\sigma^{l\cdot r} \not\in \texttt{GEVENODD}^r_0$ unless $q | l$ which would, however, map all sequences to $0$.
+    
+\end{proof}
+
+
+\begin{theorem}
+    The promise problem $\mathtt{GEVENODD}^r_q$ can be solved by a $4+q$-tupled MO-QFA $\mathcal{M} = (Q, \Sigma, \{U_\sigma \,|\, \sigma \in \Sigma \}, \ket{0}, Q_{0}, \dots, Q_{q-1}) $ with $|Q|=q$. 
+\end{theorem}
+\begin{proof}
+    Consider the following MO-QFA
+        \begin{align}
+        \mathcal{M} = ( Q &= \{\ket{X_0},\dots,\ket{X_{q-1}} \},\, \Sigma = \{\sigma\}, \{U_\sigma\},\, \ket{X_0},\, \\ Q_{0} &= \{\ket{X_0}\},\dots, Q_{q-1} = \{\ket{X_{q-1}}\} ) ,
+    \end{align}
+    where $\ket{X_0},\dots,\ket{X_{q-1}}$ are eigenstates of the $q$-dimensional $X$- or shift operator \cite{pudda2024generalised}
+    \begin{equation}
+        X_q = 
+        \begin{pmatrix}
+            0 & 0 & \cdots & 0 & 1 \\
+            1 & 0 & \cdots & 0 & 0 \\
+            0 & 1 & \cdots & 0 & 0 \\
+            \vdots & \vdots & \ddots & \vdots & \vdots \\
+            0 & 0 & \cdots & 1 & 0 \\
+        \end{pmatrix}.
+    \end{equation}  
+    We choose $U_\sigma := \sqrt[r]{Z_q}$, where
+    \begin{equation}
+        Z_q = 
+        \begin{pmatrix}
+            1 & 0 & 0 & \cdots & 0 \\
+            0 & \exp{1 \cdot i\frac{2\pi}{q}} & 0 & \cdots & 0 \\
+            0 & 0 & \exp{2\cdot i\frac{2\pi}{q}} & \cdots & 0 \\
+            \vdots & \vdots & \vdots & \ddots & \vdots \\
+            0 & 0 & 0 & \cdots & \exp{(q-1)\cdot i\frac{2\pi}{q}}
+        \end{pmatrix}.
+    \end{equation}
+    Then, $\ket{X_0} \xrightarrow{\sqrt[r]{Z_q}^r} \ket{X_1} \xrightarrow{\sqrt[r]{Z_q}^r} \cdots \xrightarrow{\sqrt[r]{Z_q}^r} \ket{X_{q-1}}$ resulting in a MO-QFA uniquely mapping input sequences to corresponding output states.
+\end{proof}
+
+\subsection{Multi-qubit case of \texttt{EVENODD}}
+
+\begin{definition}
+    The ``multi-qubit'' version of $\mathtt{EVENODD_k}$ is called $\operatorname{\mathtt{N-EVENODD_k}}=(\operatorname{\mathtt{N-EVENODD^k_{b_0,\dots,b_{N-1}}}},b_i\in\{0,1\})$ and is given by following sets of sequences
+    \begin{align}
+        \operatorname{\mathtt{N-EVENODD^k_{0,0,\dots,0}}} &= \{ |\sigma_0| \equiv 0 \land  |\sigma_1| \equiv 0, \dots |\sigma_{N-1}| \equiv 0 \} \\
+        \operatorname{\mathtt{N-EVENODD^k_{0,0,\dots,1}}} &= \{ |\sigma_0| \equiv 0 \land  |\sigma_1| \equiv 0, \dots |\sigma_{N-1}| \equiv 2^k \} \\
+        &\vdots\\
+        \operatorname{\mathtt{N-EVENODD^k_{1,1,\dots,1}}} &= \{ |\sigma_0| \equiv 2^k \land  |\sigma_1| \equiv 2^k, \dots |\sigma_{N-1}| \equiv 2^k \} ,
+    \end{align}
+    where the alphabet is given by $\Sigma = \{\sigma_0, \cdots, \sigma_{N-1} \}$ and congruence with modulo $2^{k+1}$.
+\end{definition}
+
+We start with the quantum solution to this promise problem to provide intuition.
+
+\begin{theorem}
+    The promise problem $\operatorname{\mathtt{N-EVENODD_k}}$ can be solved with a $N-$qubit MO-QFA $\mathcal{M} = (Q, \Sigma, \{U_{\sigma_i|\sigma_i \in \Sigma}\}, \ket{0}, Q_{0,0,\dots,0},Q_{0,0,\dots,1},\dots,Q_{1,1,\dots,1})$ with $|Q| = 2^N$.
+\end{theorem}
+\begin{proof}
+    Consider the MO-QFA where classifying states $Q_{b_0,\dots,b_{N-1}}$ are given by the $N-$qubit $X-$bases basis states
+    $Q_{0,0,\dots,0} = \ket{++\cdots+}, Q_{0,0,\dots,1} = \ket{++\cdots-},\dots,Q_{1,1,\dots,1} = \ket{--\cdots-}$.
+    If we choose $U_{\sigma_i} = \sqrt[2^k]{Z_i}$ we obtain the desired behavior.  
+\end{proof}
+
+To accomplish the same task with a classical DFA, we also require a multiplicative scaling compared to the ``single-qubit  " $\ mathtt {EVENODD_k}$ dimension requirement.
+
+\begin{theorem}
+    A DFA that solves the promise problem $\operatorname{\mathtt{N-EVENODD_k}}$ requires at least $2^{N(k+1)}$ states.
+\end{theorem}
+
+\begin{proof}
+    First, we devise a DFA with $2^{N(k+1)}$ that solves the promise problem. We notice that $\operatorname{\mathtt{N-EVENODD_k}}$ can be solved by counting the number of each letter $\sigma_i$ in modulo $2^{k+1}$. The modulo counting is implemented by a cyclic transition of length $2^{k+1}$. Then, we can label each state with the current gate counts - to represent all possible gate counts of $N$ different gates in $\operatorname{\mathtt{N-EVENODD_k}}$, we can use $N$ base $2^{k+1}$ numbers. If we include all possible $2^{N(k+1)}$ count instances, we can faithfully process all possible input sequences, even beyond the promised inputs.
+    Next, we prove there is no smaller DFA that solves the promise problem. If $|S|<2^{N(k+1)}$, there is at least one state $s$ that has at least two count labels, $l_1,l_2 \in $. Let's call the input sequence leading to $s$ with count $l_1$ and $l_2$, $p_1$ and $p_2$, respectively. We call the inverse of an input sequences $p \notin \operatorname{\mathtt{N-EVENODD^k_{0,0,\dots,0}}}$ to be sequences such that  $p^{-1}\cdot p \in  \operatorname{\mathtt{N-EVENODD^k_{0,0,\dots,0}}}$. Then, $p_1 \cdot p_2^{-1}$ is an input that reaches a state that is from the category $S_{0,0,\dots,0}$. However, generally $p_1 \cdot p_2^{-1} \notin \operatorname{\mathtt{N-EVENODD^k_{0,0,\dots,0}}}$ causing a contradiction. The only case where this would be true is if $p_1 = p_2$, which we have excluded. The last step is to repeat the sequence $p_1 \cdot p_2^{-1}$ such that this generic sequence becomes compatible with the promised inputs. This can be achieved in the worst case with $2^k$ repetitions of $p_1 \cdot p_2^{-1}$. Note that it may happen that $2^k\cdot(p_1 \cdot p_2^{-1}) \in \operatorname{\mathtt{N-EVENODD^k_{0,0,\dots,0}}}$. Then, repeat only $2^{k-1}$ times.
+\end{proof}
+
+
+\subsection{Quantum-inspired promise problems}
+
+In the unary promise problems $\mathtt{EVENODD_k}$ we made the observation, that the smallest solution DFA to the promise problem is equivalent to the transition graph spanned in the Bloch sphere \todo{(ref fig)}, also called Cayley graph of the finite group generated by the gate $\sqrt[2^k]{Z}$. We used this equivalence to map the DFA solution to a QFA, which manifests the equivalence with a specific quantum model. The other way around, we can define a promise problem from a finite Cayley graph with known generators, using well-established tools and arguments from automata theory.
+First, start with basic definitions: \jan{Jan: We need to discuss this a bit more I am afraid. Technically, the Cayley graph is the graph of the group itself, we are considering the action of the group on a (non-cyclic) vector. These things are definitely related somehow, but its not entirely obvious to me how analogies will play out potentially.}
+\begin{definition}
+    From Ref.~\cite{cayley1878desiderata} - A Cayley graph $C(G,X)$ is a directed graph defined from a group $G$ and its generator $X$. Vertices of $C$ are the elements $g \in G$ and edges are defined for each $x \in X$ and $g$.
+\end{definition}
+
+If we label the initial element with $\ket{+}$, and choose $X = \{\sqrt[2^k]{Z}\}$, the resulting Cayley graph is the cyclic graph with length $2^{k+1}$. Introducing accept and reject states $G_{yes}$ and $G_{no}$ makes this Cayley graph also a DFA $\mathcal{C} = (S \equiv G, \Sigma \equiv X, \delta \equiv G \times X \rightarrow G, s_0 \equiv \ket{+}, S_{yes} \equiv G_{yes}, S_{no} \equiv G_{no})$. The transition function $\delta(s_k,w)$ becomes equivalent to $ w^{inverse}\ket{s_k}$, where the superscript indicates reversed gate order, preserving the left-to-right reading intuition. Henceforth, we omit this superscript but implicitly assume the reversed order when applying a word to a state.
+
+We move next to how to define a promise problem from a given DFA.
+
+\begin{definition}
+    A DFA $\mathcal{A} = (S, \Sigma, \delta, s_0, S_{yes}, S_{no})$, induces two languages, the yes-language
+    \begin{equation}
+        L_{yes}(\mathcal{A}) = \{ w | w \in \Sigma^* , \delta(s_0,w) \in S_{yes}\},
+    \end{equation}
+    and the no-language
+    \begin{equation}
+        L_{no}(\mathcal{A}) = \{ w | w \in \Sigma^* , \delta(s_0,w) \in S_{no}\}.
+    \end{equation}
+\end{definition}
+Given these two languages, we can define a promise problem as
+\begin{definition} 
+(DFA-induced promise problem) Let $\mathcal{A}$ be a DFA. Then a DFA-induced promise problem is given as $\mathtt{PP}(\mathcal{A}) = (L_{yes}(\mathcal{A}), L_{no}(\mathcal{A}))$.
+\end{definition}
+
+What would be the state complexity of a DFA that solves such a promise problem? This is closely tied to the DFA minimization problem, which is decidable and solvable efficiently~\cite{berstel2010minimization}. This notion of minimality makes use of the Myhill-Nerode theorem, which states that every regular language has only finitely many equivalence classes, and the number of such classes coincides with the number of states of the minimal DFA recognizing this language. Such a minimal DFA has only states that are reachable and distinguishable. Two states $s_j, s_k$ are distinguishable, if we can find a word $w\in \Sigma^*$ such that $\delta(s_j,w) \in S_{yes}$ and $\delta(s_k,w) \in S_{no}$, or vice versa. There are several methods to obtain the minimal DFA. One way is to utilize Hopcroft's algorithm (see Theorem 4.24 in book or appendix, \todo{add in appendix}) which implies the following theorem
+\begin{theorem} 
+From~\cite{hopcroft2001introduction} Theorem 4.26 - 
+  If $\mathcal{A}$ is a DFA and $\mathcal{M}$ the DFA constructed from  $\mathcal{A}$ by the
+Hopcroft's Algorithm~(\cite{hopcroft2001introduction},Thrm.~4.24)~then $\mathcal{M}$ has as few states
+as any DFA equivalent to $\mathcal{A}$. $\mathcal{M}$ is unique except for possible renaming of states.
+\end{theorem} 
+
+It is, however, easy to see that a minimal automaton in the Hopcroft sense is not adequate to argue minimality for our promise problems. Consider a cyclic graph of length 6 with the initial state as accepting and the third state as rejecting. This induces the promise problem $\mathtt{PP} = (\{0,6,12,\dots\},\{3,9,15,\dots\})$. Next, we argue the minimality of the language defining DFAs, and we first start with the yes-language. In the yes language mode, the only final state is the initial state, and in the Hopcroft minimality, all other states are treated as rejects. Then, all non-final states are distinguishable from the initial state and from each other because it is always possible to find a word that maps one of the investigated state pairs to the initial state. Hence, such a DFA would be minimal. However, from intuitions we gathered previously, we know that this unary promise problem is solvable with just two states since a $mod 2$ operation alone is sufficient to differentiate between the yes- and no-language. 
+
+Our oversimplification was assuming all non-final states must be reject states. While the cycle length 6 automaton is indeed minimal when producing exactly this language, the promise problem poses a different question: "What is the minimal automaton that contains the yes-language as a subset while avoiding any intersection with the no-language?"
+In this context, treating all non-final states as final states is crucial, requiring us to examine all possible state assignments for potential minimization. Returning to our cycle length 6 example, an alternating accept-reject pattern starting from the initial state renders all accept states indistinguishable from each other, and likewise for reject states. This allows reduction to a two-state DFA, matching the state complexity derived from modular arithmetic arguments. \todo{include sketch in appendix}
+
+Ref.~\cite{zheng2017promise} distinguishes between recognition mode and solvation mode for promise problems. In recognition mode, all inputs $w\in \Sigma^*$ maintain an if-and-only-if relation to the promise, where words outside the promise reach unlabeled states distinct from both $S_{yes}$ and $S_{no}$. In solvation mode, we assume inputs will never fall outside the promised sets, allowing us to disregard outputs for words beyond our promised inputs. Following this convention, we classify the former minimality concept as a minimal DFA in recognition mode, and the latter as a minimal DFA in solvation mode.
+While Hopcroft's algorithm optimally determines the minimal DFA in recognition mode with scaling $\mathcal{O}(|S||\Sigma|\log |S|)$, finding the minimal DFA in solvation mode requires running this algorithm for all possible assignments of final states to non-final states, rendering this approach untractable. Fortunately, many promise problem classes like the unary $\mathtt{EvenOdd}_k$ or the non-unary ones generated from commuting gates $\mathtt{DIOF}$ allow us to determine minimal complexity through number theoretic arguments, bypassing this algorithmic strategy. However, we advocate this reasoning to be useful for more ``exotic'' Cayley graph-induced promise problems, such as those generated from non-commuting gate sets, for instance $X = \{s,h\}$.
+
+\begin{exampl}
+    Consider the promise problem induced by $C = (\{ \ket{+},\ket{+_y},\ket{-},\ket{-_y},\ket{0},\ket{1} \}, \{s,h\})$ (see. Fig.) \todo{add fig}, that is 
+    \begin{align}
+                \mathtt{PP}_{yes}(\mathcal{C}) &= \{w \, | \, w \in \Sigma^* \land w \ket{+} = \ket{+} \} \\
+                \mathtt{PP}_{no}(\mathcal{C}) &= \{w \, | \, w \in \Sigma^* \land w \ket{+} = \ket{-} \}   
+    \end{align}
+    The promise problem inducing Cayley graph is minimal in solvation mode and is thus the smallest DFA solving the promise problem.
+\end{exampl}
+
+\begin{proof}
+    We use the modified version of Hopcroft's algorithm to argue the minimality of the Cayley graph. States $\ket{+}$ and $\ket{-}$ are final states with definite labels, and we show for all possible label assignments of the remaining states $\ket{+_y},\ket{-_y},\ket{0},\ket{1}$ that the DFA version of the Cayley graph is minimal, i.e. all states are reachable and distinguishable. Reachability is obviously given; we proceed immediately to the check of distinguishability. We iterate over all state pairs and argue their distinguishability. 
+    \begin{itemize}
+        \item $\ket{+}$ and $\ket{+_y}$: If $\ket{+_y} \in S_{no}$, distinguishable under the empty word; if $\ket{+_y} \in S_{yes}$, $\ket{+}\xrightarrow{s} \ket{+_y}$, and $\ket{+_y}\xrightarrow{s} \ket{-}$. \textit{Distinguishable}.
+        
+        \item $\ket{+}$ and $\ket{-}$: $\ket{-} \in S_{no}$, distinguishable under the empty word. \textit{Distinguishable}.
+        
+       \item $\ket{+}$ and $\ket{-_y}$: If $\ket{-_y} \in S_{no}$, distinguishable under the empty word; if $\ket{-_y} \in S_{yes}$, $\ket{-_y}\xrightarrow{s} \ket{+}$, and $\ket{+}\xrightarrow{s} \ket{+_y}$. If $\ket{+_y} \in S_{no}$, distinguishable, else $\ket{-_y}\xrightarrow{ss} \ket{+_y}$ and $\ket{+}\xrightarrow{ss} \ket{-}$. \textit{Distinguishable}.
+
+        \item $\ket{+_y}$ and $\ket{-_y}$:  $\ket{+_y}\xrightarrow{s} \ket{-}$, and $\ket{-_y}\xrightarrow{s} \ket{+}$. \textit{Distinguishable}.
+
+        \item $\ket{-}$ and $\ket{+_y}$ or $\ket{-_y}$: analogous to $\ket{+}$ and $\ket{+_y}$ or $\ket{-_y}$. \textit{Distinguishable}.
+
+        \item $\ket{0}$ and $\ket{+}, \ket{+_y}, \ket{-_y}, \ket{-}$: applying $s^*$ on $\ket{0}$ leaves this state invariant. We can always distinguish these states using an appropriate unary $s$ word. \textit{Distinguishable}.
+
+        \item $\ket{1}$ and $\ket{+}, \ket{+_y}, \ket{-_y}, \ket{-}$: analogous to the case above. \textit{Distinguishable}.
+
+        \item $\ket{0}$ and $\ket{1}$: $\ket{0}\xrightarrow{h} \ket{+}$, and $\ket{1}\xrightarrow{h} \ket{-}$. \textit{Distinguishable}.
+        
+        \end{itemize}
+        
+        All states are distinguishable in the solvation mode, and thus, the solution to the induced promise problem.
+\end{proof}
+
+We finally mention that Cayley graphs or DFA-induced promise problems can be formulated equivalently but differently, offering potentially greater insight. Just as every regular language corresponds to a DFA and vice versa, both promise sets can likewise be expressed in regular language format. For the $\{s,h\}$ case, this becomes for example
+\begin{align*}
+    \mathtt{PP_{yes}} &= \{(hs^*h|s((h|s(hs^*h)^*s)h)^*(h|s(hs^*h)^*s)s)^*\} \\
+    \mathtt{PP_{no}} &= \{(hs^*h|s((h|s(hs^*h)^*s)h)^*(h|s(hs^*h)^*s)s)^*s((h|s(hs^*h)^*s)h)^*s(hs^*h)^*\}.
+\end{align*}   
+The DFA to RegEx transformation was performed using the web tool~\cite{ivan2024fsm2regex}. Here, $^*$ indicates repetition of the previous element any number of times, while $|$ signifies a match for any single element separated by the vertical bar.
+
+
+\subsection{Promise problem induced by mapping between MUBs}
+
+The superior succinctness of QFAs compared to DfAs in the promise problems discussed so far is because all intermediate states in a DFA transition are part of the set of states $S$, while in the QFA case, they might exist as a superposition of the two output states. In $\mathtt{EO^k}$ this had the effect that the QFA required only $|Q| =2$, while the DFA requires $ |S| = 2^{k+1}$ to represent the two output states and $2^{k+1} -2$ intermediate states. From this we can in contrary also construct a new class of promise problems; any finite group that is induced by a fixed initial state, e.g., $\ket{+}$, followed by gate sequences that result in deterministic transitions to this initial state and its orthogonal, e.g., $\{\ket{+}, \ket{-}\}$ can be formulated as a promise problem - if the there are unique intermediate states in the quantum state, which are not the output states, the QFA will have a state advantage over the DFA.
+
+\begin{definition}
+    The quantum-inspired promise problem with input letters  
+\end{definition}
+    
+\section{Automata from reduced Cayley graphs}
+\begin{figure}[h]
+\centering
+\includegraphics{automata/Cayley_reductions/Cayley_reduction_trivial.png}
+    \caption{QFA obtained from 1-qubit Clifford group and real initial state with trivial stabiliser group}
+    \label{fig:Cayley_triv}
+\end{figure}
+\begin{figure}[h]
+\centering
+\includegraphics{automata/Cayley_reductions/Cayley_reduction_h.png}
+    \caption{QFA obtained from 1-qubit Clifford group and initial state with stabiliser group isomorphic to $\mathbb{Z}_2$}
+    \label{fig:Cayley_h}
+\end{figure}
+\begin{figure}[h]
+    \centering \includegraphics{automata/Cayley_reductions/Cayley_reduction_sh.png}
+    \caption{QFA obtained from 1-qubit Clifford group and initial state with stabiliser group isomorphic to $\mathbb{Z}_3$}
+    \label{fig:Cayley_sh}
+\end{figure}
+\begin{figure}[h]
+    \centering
+\includegraphics{automata/Cayley_reductions/Cayley_reduction_s.png}
+    \caption{QFA obtained from 1-qubit Clifford group and initial state with stabiliser group isomorphic to $\mathbb{Z}_4$}
+    \label{fig:cayley_s}
+\end{figure}
+\subsection{Rep-theory proof for self-testing.} In each of the four cases above, identify three states such that two form an ONB and the third must exhibit coherence w.r.t the other two. Check the generator identities $\mathrm{s}^4=1,\mathrm{h}^2=1,(\mathrm{sh})^3=1$ on all of them. Also conclude, that and conclude that we have a (projective) representation of the Clifford group, i.e. $S^4$.
+In order to identify the representation observe the following. If it was abelian, we would have $(sh)^3=s^3h^3=s^3h=1$. In particular, $s=h$ and then it would be isomorphic to $\mathbb{Z}_2$. But since we certify that $(hss)^2\neq1$ we know that this cannot be the case. 
+By Machke's theorem every representation of a finite group is completely reducible. The results of SChur extend this to projective representations. Assume, that the two-dimensional representation would decompose into two one-dimensional irreducible ones. Then, however, the representation would be abelian, which is a contradiction to our observations above. Therefore, the representation itself must be irreducible. By well-known results in the literature $$[EXPAND]$$, there exist exactly two inequivalent irreducible faithful projective representations of $S_4$ in $\mathbb{C}^2$. Such two unitarily inequivalent representations are given the standard representation of the Clifford group, and its complex conjugate, which is good enough in our definition of equivalence.
+\section{The quantum quizzing protocol}
+
+It's the same as $\mathtt{EVENODD}_k$ with the difference that the promise problems are given with \textit{finite} sets of input sequences.
+
+
+\subsection{Finite $\mathtt{EVENODD}_k$}
+
+Promise problems were discussed as an abstract topic in theoretical computer science. However, a practical application has recently been found in the context of device-independent gate certification protocols \todo[inline]{cite Jan's stuff}. 
+A crucial modification over the original setting of promise problems is that the set of possible input sequences is kept finite. In the next section, we discuss the effects of finiteness on the state complexity.
+
+
+\begin{definition}
+    The finite-length version of the promise problem is given as $\mathtt{EVENODD_k^{i_{max}}} = (\mathtt{EVENODD^{i_{max}}_{k,yes}}, \mathtt{EVENODD^{i_{max}}_{k,no}})$ 
+    \begin{align}
+        \mathtt{EVENODD^{i_{max}}_{k,yes}} &= \{ \sigma^{i2^k} | i \in \mathbb{Z}_{\geq 0,\,\mathrm{even}} \land i \leq i_{max}\}
+        \\
+        \mathtt{EVENODD^{i_{max}}_{k,no}} &= \{ \sigma^{i2^k} | i \in \mathbb{Z}_{\geq 0,\,\mathrm{odd} } \land i \leq i_{max} \}.
+    \end{align}
+\end{definition}
+
+\begin{theorem}\label{theorem:finitepp}
+    A DFA solving $\mathtt{EVENODD_k^{i_{max}}}$ requires the state dimension 
+    \begin{equation}
+        |S| = 
+        \begin{cases}
+            2^{k+1},\, \text{if} \enspace i_{max} \geq 2^{k+1} - 1 \\
+            i_{max},\, \text{else}. 
+        \end{cases}
+    \end{equation}
+\end{theorem}
+
+\begin{proof}
+    Since $\mathtt{EVENODD_k^{i_{max}}} \subset \mathtt{EVENODD_k}$, a DFA with $|S| = 2^{k + 1}$ solves the promise problem as per Therorem~\ref{theorem:originalpp}. Therefore, consider the case $i_{max} < 2^{k+1} - 1$. As before, examine the two input sets regarding their length per input sequences in ascending order
+    \begin{align}
+    \mathtt{EVENODD^{i_{max}}_{k,yes}} &= \{0, 2\cdot2^k, \dots \} \\
+        \mathtt{EVENODD^{i_{max}}_{k,no}} &= \{1\cdot2^k, 3\cdot2^k, \dots \}.
+    \end{align}
+    The promise problem is solved if the DFA $\mathcal{A}$ maps the two distinct sets into distinct sets $\mathcal{A}(\mathtt{EVENODD^{i_{max}}_{k,yes}}) \cap \mathcal{A}(\mathtt{EVENODD^{i_{max}}_{k,no}}) = \emptyset $.
+    Let's assume first that $\mathcal{A}$ is a tail-free DFA. Then,
+    \begin{align}
+        \mathcal{A}(\mathtt{EVENODD^{i_{max}}_{k,yes}}) &= \{0, 2\cdot m, \dots \} \\
+        \mathcal{A}(\mathtt{EVENODD^{i_{max}}_{k,no}}) &= \{1\cdot2^k \bmod l  =: m, 3\cdot m, \dots \}.
+\end{align} 
+
+These outputs induce another cycle on the DFA states $0 \rightarrow 1\cdot m \rightarrow 2\cdot m \rightarrow 3 \cdot m \rightarrow \dots$, where $\mathtt{EVENODD^{i_{max}}_{k,yes}}$-states and $\mathtt{EVENODD^{i_{max}}_{k,no}}$-states are visited alternately. If $l = 2\cdot 2^k$, the output cycle has length $l_o = 2$, consisting of states $0$ and $2^k$ solving the infinite promise problem. If $l<2\cdot 2^k$ and, for simplicity, $l \nmid 2^k$, we know that the first $l_o$ sequences can be correctly represented. Odd $l_o$ would cause a conflict at the $l_o+1$-th sequence.  Since this output cycle is defined on $l$ states with step size $m$, the cycle length is the smallest combination of $p,l_o$ such that $p\cdot l = l_o\cdot m$. This means for $\gcd(l,m)=g$ we have $p \cdot g \cdot l' = l_o \cdot g \cdot m'$, $l_o = l'$. Note that $l_o$ is always odd - the only scenario of $l_o$ even would occur if $l$ is some even number $l = 2^i\cdot l'$ and $\gcd(l,m)$ odd or lower multiplicity than $i$ of the prime factor $2$. However since $2^k = n \cdot l + m \Rightarrow 2^i(2^{k-i} + l') = m$ which means $2^i$ is a common divisor of both $m$ and $l$ and thus $l_o$ odd. Hence, such DFA can only accommodate a promise problem with up to $l_o$ sequences. 
+Next, we will see that in case $l_o \neq l$, we can increase the maximum sequence number to $|S|$ by adding a tail of length $t = 1$, such as $l = |S| - 1 $. From $2^k = n \cdot g \cdot l' + g \cdot m' = n\cdot g (l' + m')$ we see that $gcd(l,m)$ can only be power of $2$. Hence, if  $gcd(l,m) \neq 1 \Rightarrow gcd(l-1, \tilde{m}) = 1$. Since the first sequence, the empty sequence can be correctly recognized by the tail state; in total, such DFA can account for $|S|$ sequences. Thus, a promise problem with $i_{max} < 2^{k+1} - 1$ can be solved with a DFA with $|S| = i_{max}$ states.
+\end{proof}
+
+\begin{corollary}
+If $i_{max} \leq 2^{k+1}-1$, it is enough to consider sequences for $i_{max}$ even
+\begin{align}
+          \mathtt{EVENODD^{i_{max}}_{k,yes}} &= \{ \sigma^{i2^k} | i \in \mathbb{Z}_{\geq 0,\,\mathrm{even}} \land i \leq i_{max}\} \\
+           \mathtt{EVENODD^{i_{max}}_{k,no}} &= \{ \sigma^{1 \cdot 2^k} \}
+\end{align}
+
+and for  $i_{max}$ odd
+\begin{align}
+          \mathtt{EVENODD^{i_{max}}_{k,yes}} &= \{ \sigma^{0}, \sigma^{2 \cdot 2^k}\} \\
+         \mathtt{EVENODD^{i_{max}}_{k,no}} &= \{ \sigma^{i2^k} | i \in \mathbb{Z}_{\geq 0,\,\mathrm{odd} } \land i \leq i_{max} \}
+\end{align}
+\end{corollary}
+
+\begin{proof}
+    In the proof of Theorem \ref{theorem:finitepp}, we established that $\mathtt{EVENODD^{i_{max}}_{k}}$ for appropriately small $i_{max}$ can be solved with a DFA with $|S| = i_{max}$ states because only the $i_{max}$-th sequence would cause a contradiction in the DFA outputs since it will map onto the same state as the first sequence from the opposite input set.  This also means that omitting sequences from the opposite input set larger than the shortest would not change the required DFA dimension. 
+\end{proof}
+
+%\begin{corollary}
+%    The minimal input sequnce set to require higher dimensions than $|S|=2$ is given by 
+%\end{corollary}
+
+\subsection{Finite versions of promise problems allow for \textit{quantum system quizzing}}
+
+For some promise problems (the unary ones), we can establish that dimension separation $\rightarrow$ valid quantum quizzing protocol.
+
+Such a general statement might not be possible for others, but at least all protocols mentioned in Refs. \cite{noller2024self,noller2024classical} are instances of a promise problem mentioned in this work with dimension separation.
+
+\subsection{Unary promise problems}
+
+Finite versions of the unary $\mathtt{EVENODD_k^{i_{max}}}$ with dimension gaps are necessarily quantum quizzing protocols.
+
+\subsection{Categorisation of other protocols}
+
+\begin{itemize}
+    \item S gate certification (Ref. \cite{noller2024classical}, Sec. 3.1) is finite $\mathtt{DIOF^1}$, where $\Sigma = (s,s^{-1})$ and $a = (1, 3)$.
+    \item Universal gate set certification (Ref. \cite{noller2024classical}, Sec. 3.3) is combination of finite $DIOF$ and $MUB$.
+    \item quasi-deterministic 2-qubit S gate certification (Ref. \cite{noller2024self}, Theorem 1) is finite multi-qubit $\mathtt{EVENODD}^1$
+    \item quasi-deterministic 2-qubit S gate certification with controlled-NOT (Ref. \cite{noller2024self}, Corollary 3) is multi-qubit with additional sequences, which are not accounted yet  
+\end{itemize}
+
+\section{Promise problems in the context of the prepare-and-measure scenario}
+
+\begin{itemize}
+    \item We can study promise problems also in the context of prepare and measure scenario
+    \item the communication matrix is formulated by "inflation", introducing all theoretical cuts to separate prepared states and measurements.
+    \item this results in a Hankel matrix as communication matrix
+    \item required classical and quantum state complexity to simulate certain communication tasks has been studied in the past \todo[inline]{cite all Teiko papers}
+    \item nonnegative rank is not easy to compute
+    \item Can we deduce a "nonnegative rank" witness for Hankel-type communication matrices from known DFA results? $\rightarrow$ if hankel bound == pfa bound, the easier-to-compute hankel bound gives a lower bound on the nonnegative rank for systems with same "success probability"
+    \item define the "witness", establish the Hankel and PFA bounds and report them
+\end{itemize}
+
+
+\end{document}
