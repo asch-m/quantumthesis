@@ -1,0 +1,115 @@
+\documentclass[../main.tex]{subfiles}
+\graphicspath{{\subfix{../images/}}}
+\begin{document}
+% \textbf{Hello world!}
+% \begin{figure}[bh]
+% \centering
+% \includegraphics[width=3cm]{automata/tautomata.pdf}
+
+% \label{fig:img1}
+% \caption{Overleaf logo}
+% \end{figure}
+
+\chapter{Applications of VQE I: Chemistry}
+
+\section{Introduction: The Why of quantum computing for quantum chemistry}
+
+\begin{itemize}
+    \item In the last chapter we discussed working principles f VQE and how such algorithm could be implemented on a measuremnt-based quantum cmoputer respecting determinism. We also gave some examples as benchmark (list what was studied in mbqc paper)
+    \item Next, we want to dive deeper what applications could be given such 
+    \item  check intro of paper 1
+\end{itemize}
+
+\section{Introduction to Quantum computational chemistry}
+
+
+
+\begin{itemize}
+    \item the electronic structure hamiltonian and the Fock space
+    \item second quantization
+    \item cholesky based decomposition of the ahmiltonian
+    
+    \item mapping to qubits: Jordan Wiegner
+    \item connection to matchgate, fermionic Gaussian
+    
+    \item AFQMC fundamentals, fermionic sign problem
+    \item Projector methods in imaginary time, Hubbard–Stratonovich transformation, random walkers (Slater determinants), local energy estimator, and the phase/sign problem; phaseless approximation and role of the trial state
+
+    \item VQE for quantum chemistry
+    \item Overview of variational principle, ansätze (e.g., UCC), and measurement optimization strategies (grouping, basis rotations, classical shadows) to lower measurement counts on NISQ.
+
+    \item Classical shadows for quantum chemistry
+    \item Core idea of classical shadows (randomized measurements) and why they are attractive when many observables of the same state are needed; introduce Clifford, matchgate, and orbital-rotation shadows; emphasize variance/shot-noise behavior and reuse of measurements.
+
+    \item QC‑AFQMC (using quantum trial states in AFQMC)
+    \item Where the quantum state enters: overlaps needed for importance sampling (overlap ratio), force-bias evaluation, and local energy; scaling and factorization to $O(N^3)$ for local energy with modern compression; total overlap burdens across walkers/blocks/steps; mean-field subtraction requires trial-state expectations.
+    \item Practical measurement challenge and post-processing costs; with classical-shadow schemes the classical post-processing for QC‑AFQMC overlap estimation can scale as $O(N^9)$ per walker end-to-end (algorithmic workflow perspective).
+    
+\end{itemize}
+
+This section aims at a complete yet minimal introduction to the electronic structure theory maianly studied in quantum chemistry in so-called second-quantized formulation with the aim to cover all concepts to makes the motivation, methods and results of the publications \todo{cite bith paper} comprehensive. This will include a minimalistic introduction to quantum chemistry and is formulation, the expectation the field has on quantum computer, and how such problems are mapped onto the quantum computer. A quick introduction on what a quantum computer is, measuremnts are done or algorithms as the VQE is given \todo{ref the intro}. For more details on electronic structure theory, we recommend the study of Refs.~\cite{helgaker2014molecular, szabo2012modern}, or more taiored towards quantum computing practitoiners Refs. \cite{mcardle2020quantum, cao2019quantum}.
+
+
+\subsection{The electronic structure theory in second quantuization}
+
+
+
+
+
+\section{Quantum‑enhanced AFQMC in industrial chemistry and materials }
+
+\begin{itemize}
+    \item write what we did: proof of concept on challenging test systems
+    \item second paper, demystyfication of classical resources required run qqc-qmc. 
+\end{itemize}
+
+\subsection{Proof of concept: da toysystems}
+
+Objective and scope (industrial view)
+Test QC‑enhanced AFQMC on representative systems: H4 potential curve; relative energies of 1O2 and O3 vs 3O2; and a quasi‑1D model derived from CuBr2 mapped to a Hubbard-like Hamiltonian.
+
+
+
+Trial states and set‑up
+Classical: HF, CASSCF/CAS; quantum: UCCSD‑VQE initialised by CCSD amplitudes; also MPS trials for the lattice model; implementation via ipie, PySCF, and cirq; CBS extrapolation for molecular benchmarks and ZPVE corrections for experiment comparison.
+
+
+
+
+Molecular benchmarks (H4, O2/O3)
+H4: AFQMC(VQE) systematically improves VQE energies and tracks FCI closely, but does not attain chemical accuracy across all geometries.
+O2/O3: AFQMC with CAS trials yields relative energies within or near chemical accuracy; caveats include AFQMC statistical error propagation, CBS extrapolation from limited basis points, and ZPVE consistency
+
+Materials benchmark (CuBr2→1D Hubbard-like model)
+Trial-state quality and symmetry matter: higher-fidelity MPS trials need not yield better AFQMC energies than symmetry-preserving HF; the structure of the trial state (symmetries) can dominate performance.
+
+Key takeaways
+For molecules, QC‑AFQMC with high-quality small active-space trials is promising against industrially relevant targets; for lattice models, enforce symmetries and physical structure in trials; integration into workflows and robust ZPVE/forces remain as practical bottlenecks to address.
+
+\subsection{Scaling study:}
+
+QC‑AFQMC requires many overlaps between the quantum trial state and evolving (non‑orthogonal) Slater-determinant walkers; evaluate measurement and classical post-processing costs, error propagation, and scaling.
+
+Where overlaps appear and how many
+Importance sampling and force bias require $O(N^2)$ per walker per step; local energy is periodic but dominant, $O(N^3)$ with factorization; aggregate across walkers/blocks yields substantial measurement burdens
+
+Measurement schemes
+Hadamard test: direct overlap estimation, but controlled-state preparation increases circuit depth; sampling independent of N, but impractical for NISQ depth and per‑overlap repetition.
+Classical shadows:
+Clifford shadows: few shots for many observables, but exponentially costly classical post‑processing for Slater‑determinant overlaps.
+Matchgate shadows: polynomial classical post‑processing via Pfaffian interpolation; polynomial shot complexity; efficient for Slater determinant overlaps.
+%Orbital-rotation shadows: particle‑number‑preserving ensemble; shot variance scales with particle number η and can decrease with N; needs ancillas and deeper circuits; efficient in $\eta$ with adapted interpolation methods.
+
+Statistical behavior and covariances
+Overlap estimates are near‑Gaussian and exhibit shot‑noise scaling with the number of snapshots; covariances arise when reusing shadows for correlated walker states over imaginary time and should be mitigated by resampling/reblocking techniques.
+
+
+Error propagation and end‑to‑end cost
+Derive how overlap errors propagate into local energy and final AFQMC energy; errors scale with Hamiltonian 2‑norm, not 1‑norm as in VQE; trading quantum shots vs. classical walkers/blocks can compensate within limits.
+Overall, combining measurement and classical post‑processing leads to an $O(N^9)$ per‑walker scaling for QC‑AFQMC overlap estimation pipelines under state‑of‑the‑art schemes.
+Numerical demonstrations
+H4 and H2O with QNP‑VQE trials: AFQMC remains accurate up to noise thresholds (~1e‑2–1e‑3 overlap error), but full‑pipeline noise (propagation + local energy) is more damaging than propagation‑only; larger bases (cc‑pVDZ/VTZ) highlight sensitivity to overlap noise in propagation.
+
+key takeaways 
+
+\end{document}

@@ -1,15 +1,275 @@
 \documentclass[../main.tex]{subfiles}
 \graphicspath{{\subfix{../images/}}}
 \begin{document}
-\textbf{Hello world!}
-\begin{figure}[bh]
-\centering
-\includegraphics[width=3cm]{automata/tautomata.pdf}
+% \textbf{Hello world!}
+% \begin{figure}[bh]
+% \centering
+% \includegraphics[width=3cm]{automata/tautomata.pdf}
 
-\label{fig:img1}
-\caption{Overleaf logo}
+% \label{fig:img1}
+% \caption{Overleaf logo}
+% \end{figure}
+
+\begin{itemize}
+    
+    \item intro quantum
+    \item classical data encoding in quantum, and pauli projection
+
+    \item intro to chemistry for quantum
+    \item classical shadows
+    \item quantum enhanced quantum monte carlo
+    
+    \item Preface
+    \item acknolegements
+    \item title page
+    \item abstract
+    
+\end{itemize}
+
+\section{Preface}
+
+\begin{itemize}
+    \item 70s Alexander Holevo, revealed connection information theory and quantum physics
+    \item 80s Paul Benioff, proposed first Turing machine based on quantum mechanical principles. Scientific relevance was infamously endorsed by Richard Feynmans; the simulation of quantum mechanical evolutions cannot be conducted efficiently, intuition is to simulate complex physics with well-behaved quantum systems (more in the nature of what th efield calls quantum simulation)
+    \item 90s most impactful breakthrupugh in quantum complexity theory: it was shown that factoring is efficient with quantum computim computer emplying shor's algorithm. Alongside this, many algoirhtm devised that is employing some sort of quantum fourier transform.
+    \item given significance for factoring algorithm in encryption, funding increased 
+    \item would be cool to cite graphs showing how funding increased over the years, and also mention googl eas inflection point
+    \item mention here what is meant with quantum advantage
+    
+\end{itemize}
+
+
+\section{Quantum computing 101 \& notations}
+
+Quantum computers perform arithmetic and logical operations using quantum systems, typically quantum two-level systems, as opposed to classical two-level systems characterized by binary integers, the elementary information units of what the quantum computing community refers to as classical computers.
+
+In the following sections, we summarize the basic concepts and notations of quantum computing to make this thesis as self-consistent as possible. We note that numerous excellent textbook resources exist for introductions to quantum computing and quantum information science \cite{nielsen2010quantum, wong2022introduction, watrous2018theory}, as well as online resources provided by commercial quantum computing companies \cite{2025learn, 2025quantum}.
+
+The mathematical formulations required to treat quantum systems follow from the five \textit{postulates of quantum mechanics}. We consider exclusively finite-dimensional quantum systems and outline these postulates with accompanying comments:
+\begin{enumerate}[align=center]
+        \item[Postulate 1 -- \textit{State Space}] Any isolated physical system is associated with a Hilbert space, i.e., a complex vector space $\mathbb{C}^n$ equipped with an inner product $\langle \cdot | \cdot \rangle : \mathbb{C}^n \times \mathbb{C}^n \mapsto \mathbb{C}$. \textit{Dirac notation} is employed to concisely express high-dimensional vectors $\ket{\phi} \in \mathbb{C}^n$ and their conjugate transpose $\bra{\phi}$. The physical system is fully described by the \textit{state vector}, e.g., $\ket{\phi}$, a unit vector in the respective Hilbert space with $\braket{\phi}{\phi} = 1$.
+        
+    \item[Postulate 2 -- \textit{Evolution}] The time evolution of an isolated physical system is           governed by the Schrödinger equation
+        \begin{equation}
+            i \hbar \frac{\dd \ket{\phi}}{\dd t} = H \ket{\phi},
+        \end{equation} where $H$ is the \textit{Hamiltonian}, a Hermitian operator, i.e., $H = (H^{*})^T = H^\dagger$, that corresponds to the total energy of the system. Mathematically, the evolution operator is given as a \textit{unitary} operator, i.e., $U \ket{\phi} = \widetilde{\ket{\phi}}$ with $UU^\dagger = U^\dagger U = \mathbbm{1}$, mapping a state vector $\ket{\phi}$ to another valid state vector $\widetilde{\ket{\phi}}$. In other words, $U$ implements a norm-preserving rotation in the Hilbert space.
+        
+    \item[Postulate 3 -- \textit{Measurement}] Measurements on a quantum system are described by a set of measurement operators ${M_a }$, where the index $a$ denotes a possible outcome. Given a system $\ket{\phi}$, the probability that $a$ is measured is given by 
+    \begin{equation}
+        p(a) = \bra{\phi} M_a^\dagger  M_a \ket{\phi}
+    \end{equation} and the post-measurement state is 
+    \begin{equation}
+        \frac{M_a \ket{\phi}}{\sqrt{\bra{\phi} M^\dagger_a M_a \ket{\phi} }}.
+    \end{equation} The measurement operators obey the completeness relation
+    \begin{equation}
+        \sum_a M_a^\dagger M_a = \mathbbm{1},
+    \end{equation} which follows from the natural requirement that the probabilities sum to $1$. If the measurement operators are projective operators, the measurement is called a \ac{PVM}. This is the typical case in quantum computing.
+    
+    \item[Postulate 4 -- \textit{Composition}]  The state space of a composite system can be expressed as the \textit{tensor product} of its constituent systems, e.g., $\ket{\phi} = \ket{\phi_1} \otimes \ket{\phi_2} \otimes \cdots \otimes \ket{\phi_m}$. If $\ket{\phi_i} \in \mathbb{C}^{n}$, then $\ket{\phi} \in \mathbb{C}^{n^m}$.
+        
+\end{enumerate}
+
+We introduce some common terminology.  A \textit{qubit} is a quantum system with dimension two, with the general state given by $\alpha \ket{0} + \beta \ket{1}$ where $|\alpha|^2 + |\beta|^2 = 1$, and $\ket{0} = (1 \quad 0)^T$ and $\ket{1} = (0 \quad 1)^T$. These one-hot vectors are referred to as the \textit{computational basis} or the Pauli $Z$-basis, and this notion extends to composite systems, or multi-qubit systems, through the tensor product. It is convenient to work with \textit{Pauli matrices}
+\begin{equation}
+    X = \begin{pmatrix}
+        0 & 1 \\
+        1 & 0 
+    \end{pmatrix}, \quad
+    Z =
+    \begin{pmatrix}
+        1 & 0 \\
+        0 & -1 
+    \end{pmatrix}, \quad
+    Y = iXZ = 
+    \begin{pmatrix}
+        0 & -i \\
+        i & 0
+    \end{pmatrix},
+\end{equation} which are unitary and form, together with the identity matrix $\mathbbm{1}$, a basis for $2 \times 2$ Hermitian matrices. \textit{Pauli words} or \textit{Pauli strings} are multi-qubit operators consisting of Pauli matrices composed through tensor products $\bigotimes_n P_i$, where $i \in \{X,Y,Z,\mathbbm{1} \}$. These are exactly the kinds of matrices that are relevant as physical operators or observables.\textit{Superposition} describes a quantum state that exists as a linear combination of basis states simultaneously; e.g., for non-zero $\alpha$ and $\beta$, $\alpha \ket{0} + \beta \ket{1}$ is a superposition of $\ket{0}$ and $\ket{1}$. \textit{Entanglement} occurs in composite systems when the state vector cannot be expressed as a single product state $\ket{\phi}_{AB} \neq \ket{\phi}_A \otimes \ket{\phi}_B$. An example of such entangled states are Bell states, for example $\frac{1}{\sqrt{2}} (\ket{00} + \ket{11})$, where $\ket{ij} = \ket{i} \otimes \ket{j}$, which together with the Bell inequality \cite{bell1964einstein} proved the incompatibility of quantum theories with local hidden-variable theories given the statistical correlations such states produce through measurements. Entanglement serves as a communication resource \cite{ekert1991quantum}, a computation resource in measurement-based quantum computing \cite{raussendorf2003measurement}, and in general a necessary condition for quantum advantage \cite{vidal2003efficient}.
+
+However, it is only a necessary condition, as there are highly entangled quantum states that can still be simulated efficiently by classical means. One example of such states are the so-called \textit{Stabilizer states}. These states are precisely those that can be completely characterized by their Pauli string stabilizers, i.e., the $+1$ eigenstates corresponding to certain Pauli operators. Such states can be mapped onto each other via \textit{Clifford circuits}, which can be generated by a finite set of gates, e.g., the \textit{Hadamard gate}
+
+\begin{equation}
+    H = \frac{1}{\sqrt{2}}
+    \begin{pmatrix}
+        1 & 1 \\
+        1 & -1
+    \end{pmatrix}
+\end{equation}, the $S$\textit{-gate}
+
+\begin{equation}
+    S = \sqrt{Z}
+    \begin{pmatrix}
+        1 & 0 \\
+        0 & i
+    \end{pmatrix}
+\end{equation}, and the two-qubit controlled-NOT ($\mathrm{CNOT}$)
+\begin{equation}
+    \mathrm{CNOT} = 
+    \begin{pmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & 1 & 0 & 0 \\
+        0 & 0 & 0 & 1 \\
+        0 & 0 & 1 & 0 \\
+    \end{pmatrix}
+\end{equation}. Classical simulability of these states via Clifford gates was proven under the \textit{Gottesman-Knill theorem} \cite{aaronson2004improved} as a constructive algorithm that essentially keeps track on how these elementary gates map one Pauli string to another. For instance, we have $HXH^\dagger = Z$ and $HZH^\dagger = X$, $SXS^\dagger = Y$ and $SZS^\dagger = Z$, and $\mathrm{CNOT} (X \otimes I) \mathrm{CNOT}^\dagger = X \otimes X$, $\mathrm{CNOT} (I \otimes X) \mathrm{CNOT}^\dagger = I \otimes X$, $\mathrm{CNOT} (Z \otimes I) \mathrm{CNOT}^\dagger = Z \otimes I$ and $\mathrm{CNOT} (I \otimes Z) \mathrm{CNOT}^\dagger = Z \otimes Z$.  Another class of classically simulable states are the \textit{free Gaussian states}, which we will introduce later \todo{talk about these in chemitry section and ref}. Clifford gates are not \textit{universal}, i.e., cannot evolve states to any arbitrary state, since the image is restricted to stabilizer states. However, augmenting any non-Clifford circuit to the Clifford gates, such as the $T$-gate
+\begin{equation}
+    T = \sqrt{S} = \begin{pmatrix}
+        1 & 0 \\
+        0 & e^{i \frac{\pi}{4}}
+    \end{pmatrix},
+\end{equation} renders the set to be the approximate generator of the set of all unitaries. The discovery that a finite set of generators can approximate any unitary operation represents a significant step toward physically realizing universal quantum computers.
+ However, the ability to approximate universal gates does not necessarily guarantee efficiency. From the Solovay-Kitaev theorem, we know that approximating an arbitrary $n$-qubit unitary $U$ up to distance $\epsilon$ takes $O(n^2 4^n \log^c(n^24^2/\epsilon))$ for some constant $c$ \cite{nielsen2010quantum}. 
+ 
+ These generating sets are not unique. Another popular choice is the combination of general single-qubit rotations with $\mathrm{CNOT}$ $\{R_x(\theta_x), R_y(\theta_y), R_z(\theta_z),  \mathrm{CNOT}\}$, where
+\begin{align}
+        R_x(\theta) &= e^{-i \frac{\theta}{2} X } = 
+    \begin{pmatrix}
+        \cos{\frac{\theta}{2}} & -i \sin{\frac{\theta}{2}} \\
+        -i \sin{\frac{\theta}{2}} & \cos{\frac{\theta}{2}}
+    \end{pmatrix}, \\
+        R_y(\theta) &= e^{-i \frac{\theta}{2} Y } = 
+    \begin{pmatrix}
+        \cos{\frac{\theta}{2}} & - \sin{\frac{\theta}{2}} \\
+        - \sin{\frac{\theta}{2}} & \cos{\frac{\theta}{2}}
+    \end{pmatrix}, \\
+        R_y(\theta) &= e^{-i \frac{\theta}{2} Y } = 
+    \begin{pmatrix}
+        \cos{\frac{\theta}{2}} & - \sin{\frac{\theta}{2}} \\
+        - \sin{\frac{\theta}{2}} & \cos{\frac{\theta}{2}}
+    \end{pmatrix}.
+\end{align}
+
+\subsection{Measurements in quantum computing}\label{sec:measure}
+A \textit{quantum algorithm} consists largely of three steps: 1. the initial state preparation, including some form of data loading; 2. processing through gate sequence applications; and 3. measurement. Details on initial state preparation \todo{Ref. in main thesis where this is appropriate (one should be federicos part, another should be the chemical part)} and concrete gate sequences part of concrete algorithms will be introduced in this theisis where approriate. Here, we focus on the measurement process.
+
+Some of the key distinctions between classical and quantum computing can be traced to the effects of measurement. While read-out of classical bits is ``trivial'' since they are represented completely by a single observable (in quantum computing terminology, an eigenstate of the $Z$ operator), a qubit is generally characterized by two non-commuting operators, $Z$ and $X$. Since qubits cannot be eigenstates of both operators simultaneously, one copy of an unknown state will never provide sufficient information to replicate the entire state. This fundamental limitation is known as the \textit{no-cloning theorem}. We will now discuss some strategies for extracting data from a quantum computer through measurements.
+
+A measurement type supported by quantum hardware is the projective measurement onto the computational basis. This offers sufficient functionality to measure in any basis since we can append unitaries to the circuit that rotate the state to the desired measurement basis. For example, if we want to measure in the $X$-basis, we apply $H$ since $HZH^\dagger = X$, or $SH$ if we wanted to measure in the $Y$-basis due to $SHZ(SH)^\dagger = Y$. 
+Expectation values are estimated via the sample mean with some post-processing. E.g., if we are interested in estimating $\bra{\psi}Z\ket{\psi}$, we measure in the $Z$ basis and associate a $+1$ whenever we project onto $\ket{0}$ and $-1$ when we project onto $\ket{1}$, corresponding to their respective eigenvalues. In other words, we obtain a binomial distribution, and the error of the expectation value (or the mean) scales according to the central limit theorem as $\propto 1/\sqrt{N}$, where $N$ is the number of samples. 
+The same principle holds for Pauli words and multi-qubit systems. Since Pauli matrices are both unitary and Hermitian, they too have eigenvalues of either $+1$ or $-1$. For a given Pauli word, the appropriate basis rotations are applied to each qubit, and the output is computed as the parity of the resulting binary string.
+
+\begin{figure}[h!]
+    \centering
+    \begin{subfigure}{0.45\textwidth}
+        \centering
+        \begin{quantikz}
+            \ket{0} & \gate{H} & \ctrl{1} & \gate{H} & \meter{} \\
+            \ket{\psi} && \gate{U} & &
+        \end{quantikz}
+        \caption{circuit for estimating $\mathrm{Re}(\bra{\psi}U\ket{\psi})$}
+    \end{subfigure}\hfill
+    \begin{subfigure}{0.45\textwidth}
+        \centering
+        \begin{quantikz}
+            \ket{0} & \gate{H} & \gate{S^\dagger} & \ctrl{1} & \gate{H} & \meter{} \\
+            \ket{\psi} &&& \gate{U} & &
+        \end{quantikz}
+        \caption{circuit for estimating $\mathrm{Im}(\bra{\psi}U\ket{\psi})$}
+    \end{subfigure}
+    \caption{Circuits for the Hadamard test}\label{fig:hadamard}
 \end{figure}
 
-Hello, here is some text without a meaning...
+
+Another routine for measuring expectation values of a unitary operator $\bra{\psi} U \ket{\psi}$ is is the Hadamard test \cite{nielsen2010quantum, tilly2022variational}. Here, in addition to the qubits implementing the state of interest $\ket{psi}$, an auxiliary qubit is used, which is prepared in the $\ket{+}$ state. By applying a controlled version of the unitary $U$ with the auxiliary qubit as the control, the expectation value is encoded in the relative phase of the auxiliary qubit, such that measuring the auxiliary qubit suffices to obtain the expectation value. The sampling complexity scales as $O(1/\epsilon^2)$, the typical statisitical shot-noise scaling, where $\epsilon$ is the desired precision. Note, however, that this method estimates only the real part of the expectation value. To estimate the imaginary part, the initial state of the auxiliary qubit must be modified --- the circuits implementing this routine are shown in Fig.~\ref{fig:hadamard}.
+
+While in algorithms such as Shor's algorithm, the output is formulated to be a computational basis state, in more physically motivated problems where the quantum computer is used to prepare some quantum state of interest, the aim is often to determine physical properties of that state. These properties are given in the form of Hermitian operators, which are typically not unitaries. Thus, these observables need to undergo preprocessing to unitarize them or to express them, for instance,  \ac{LCU}. The most convenient approach is to express operators as sums of Pauli words, since physical operators are canonically given in this form. More advanced decomposition methods are summarized in \cite{loaiza2023reducing}. These methods require higher preprocessing costs but offer favorable operator properties for subsequent quantum applications. Given an LCU representation of an operator, we can sequentially measure each unitary component using the methods described above and weight the expectation value with the respective coefficient in the LCU.
+
+Probably the most powerful and efficient method for measuring expectation values from a quantum computer is \ac{QPE} \cite{kitaev1995quantum, nielsen2010quantum}. This is a one-shot algorithm that computes eigenvalues when given access to a unitary operator $U$ and its eigenstate of interest $\ket{\psi}$, often the ground state of a given Hamiltonian $H$. Since $H$ is not unitary, one instead considers the operator $U = e^{-2\pi iH}$, which preserves eigenstates and transforms the eigenvalue to a phase: $U|\psi\rangle = e^{2\pi i\theta}|\psi\rangle$, where $\theta$ is the quantity we want to estimate. In \ac{QPE}, the value of $\theta$ is computed and encoded as an $n$-bit binary representation using $n$ auxiliary qubits and a register containing the prepared state $|\psi\rangle$. The algorithm employs the inverse quantum Fourier transform (QFT), which is the algorithmic primitive used in other quantum algorithms with exponential speedups, such as Shor's algorithm and discrete logarithm algorithms. The \ac{QFT} as a blackbox function is
+\begin{equation}
+    \ket{x} = \sum_{i=0}^{2^n - 1} x_i \ket{i} \xrightarrow{QFT} \ket{y} = \sum_{i=0}^{2^n - 1} y_i \ket{i}, \quad y_k = \frac{1}{2^n} \sum_{j=0}^{2^n - 1} x_j e^{\frac{2 \pi i k j}{2^n}}.
+\end{equation} 
+Note that if $\ket{x} = \ket{k}$, a computational basis state, $ \ket{x} \xrightarrow{QFT} \frac{1}{2^n} \sum_{\ell = 0} e^{2 \pi i \tilde{k} \ell} \ket{\ell}$, where $\tilde{k} = k/2^{n}$ and is a binary fraction $\tilde{k} = \sum_{i=0} k_i 2^{n-1-i}$. For the phase estimation problem, we want to prepare the state $\frac{1}{\sqrt{2^n}} \sum_\ell e^{2 \pi i \theta \ell} \ket{\ell}$ so that we can map back to $\ket{\theta}$ with the inverse \ac{QFT}, then measure in the computational basis to obtain the eigenvalue deterministically with precision depending solely on the number of auxiliary qubits. We observe that  $U^k \ket{\psi} = e^{2 \pi i \theta k} \ket{\psi}$. Thus, applying binary powers of $U$ controlled by the superposition of all computational states  $\frac{1}{\sqrt{2^n}} \sum_k \ket{k}$ gives exactly the desired state. This brief description is illustrated in Fig.~\ref{fig:qpecircuit} for $n=3$.
+
+Since this routine offers the possibility of estimating ground state energies without solving the diagonalization problem of an intractably large matrix, it represents a very promising candidate for practical quantum advantage. However, challenges arise when attempting to actually implement this algorithm. 
+First, the preparation of $\ket{\psi}$ as the exact groundstate is challenging. In realistic implementations, $\ket{\psi}$ would be rather a superposition of multiple eigenstates. This makes the output of \ac{QPE} also a superposition of different bit strings, rendering it a probabilistic protocol where the success probability depends largely on the overlap between the initial state and the desired eigenstate. Another challenge arises from implementing the controlled unitaries. Typically, $H$ is a sum of many non-commuting terms, making the implementation of $e^{ixH}$ possibly intractable even on quantum computers due to the high circuit depths required. High circuit depth also means that the output will almost certainly be corrupted by hardware errors, as errors accumulate with each gate operation. Strategies for implementing Hamiltonian evolution operators, including Trotter decomposition, will be discussed later \todo{ref to chem intro and mention trotter decomposiotn}. Many follow-up works have aimed to reduce the required hardware resources by increasing the sampling complexity for more favorable qubit counts \cite{kitaev1995quantum, aspuru2005simulated} or circuit depth \cite{wan2021a, dutkiewicz2024error}. Due to such issues, \ac{QPE} is considered a quantum algorithm accessible only on fault-tolerant quantum computers, i.e., those free of hardware noise, which are not yet an experimental reality.
+
+\begin{figure}
+        \centering
+        \begin{quantikz}
+            \ket{0} & \gate{H} &&&  \  \ldots \  & \ctrl{4}& \gate[4]{\mathrm{QFT}^{-1}} & \meter{} \\
+            \vdots \setwiretype{n}&&&&\setwiretype{n}  \  \vdots \  &&&\setwiretype{n} \vdots \\
+            \ket{0} & \gate{H} & & \ctrl{2} & \  \ldots \  &&  & \meter{} \\
+            \ket{0} & \gate{H} & \ctrl{1} && \  \ldots \  &&  & \meter{}  \\
+            \ket{\psi} && \gate{U^{2^0}} & \gate{U^{2^1}} & \  \ldots \  & \gate{U^{2^{n-1}}} & &
+        \end{quantikz}
+        \caption{Quantum circuit implementing the ``textbook'' QPE \cite{kitaev1995quantum, nielsen2010quantum} to compute the phase $\theta$ given a unitary $U$ and eigenstate $\ket{\psi}$ sucht that $U \ket{\psi} = e^{2 \pi i \theta} \ket{\psi}$. $n$ auxiliary qubits and controlled applications of powers of $U$ are used to encode the Fourie coefficients in to the phase of the auxiliray qubits. Then, the inverse \ac{QFT} is applied to resolve $\theta$ in binary representation in the output register. }\label{fig:qpecircuit}
+\end{figure}
+
+There has been recent innovation in \ac{NISQ}-compatibel measruement scheme, called \textit{classical shadows} \cite{huang2020predicting}, which is based on building a bias-free estimator from measurement data that can be used as a post-processing routine to estimate many observables classically and efficiently, making it attractive for quantum-classical hybrid schemes. We will discuss this topic in detail when this scheme is utilized in such contexts \todo{ref to chem chapter}.
+
+As a final section of this brief summary of quantum computing, we mention that inevitable hardware and environmental noise affecting qubits can be overcome through error-correcting codes. We note that classical bits, implemented at the elemental level through transistors etched on silicon wafers at atomistic scales, are also prone to bit-flip errors and similar issues, but are successfully treated through error-correcting codes typically based on redundancy of stored information. In other words, many copies of the same physical bit are created to form one logical bit. While the no-cloning theorem prohibits using exactly the same strategy to build fault-tolerant quantum computers, efforts have been made with success to develop quantum error-correcting codes theoretically since the dawn of quantum computing research \cite{shor1995scheme, steane1996error, gottesman1997stabilizer}. Since this field is not the focus of this thesis, we keep the discussion brief, but for more details we reference  \cite{roffe2019quantum, terhal2013quantum}. Redundancy in quantum error correction is implemented via stabilizer states, since with these we know how to perform measurements in the eigenbasis without disturbing the underlying logical state. The parity of such stabilizer measurements reveals the existence of certain error types, which can then be compensated via gates conditioned on the measurement outcomes. The most popular codes are probably topological or surface codes  \cite{fowler2012surface}, based on stabilizer states consisting of local \textit{star} and \textit{plaquette operators} \todo{ref to figure in mbqc chapter}. If the physical error rate of the hardware is below a certain threshold, it has been shown that errors can be arbitrarily reduced by repetition of the error-correcting cycles. This is known as the threshold theorem \cite{shor1996fault}, and the concrete thresholds depend on the error-correcting code. For the surface code, the threshold has been estimated through numerical studies accounting for realistic error scenarios to be approximately $0.1094 \pm 0.00020$ \cite{dennis2001topological}, which has recently come within experimentally approachable range.
+
+First demonstrations of error suppression using surface codes have been shown by multiple commercial hardware providers using different technology platforms: superconducting qubits, neutral atoms, and photonic quantum computing  \cite{acharya2022suppressing, bluvstein2023logical, walshe2025linear}. With such advancements in hardware development, practical quantum advantage appears imminent. However, the field has not remained idle and has spent more than a decade contemplating whether practical quantum advantage is achievable even on \ac{NISQ} computers, which we will introduce in the next chapter.
+
+
+\section{Noisy intermediate scale quantum computing}
+
+While progress on hardware is impressive, with recent demonstrations providing evidence of error correction using small instances of error-correcting codes \cite{acharya2022suppressing, bluvstein2023logical, walshe2025linear}, currently existing machines are categorized as \ac{NISQ}-devices \cite{preskill2018quantum}. There appears to be a ``cat-and-mouse game'' between those who claim experimental demonstrations of quantum advantage and those who attempt to disprove these claims by devising classical methods that compute the same results with reasonable resources. For instance, Google's quantum ``supremacy''\footnote{This terminology is used as a direct citation; in general, it is advised to replace it with a more historically neutral term \cite{palacios2019instead}} claim through random circuit sampling  \cite{arute2019quantum} was countered by Pan et al.~\cite{pan2022solving}, who claimed classical simulability.  Similarly, IBM's work claiming utility in quantum simulation of the transverse-field Ising model \cite{kim2023evidence}, immediately prompted counter-papers demonstrating classical simulation through DMRG-based methods \cite{tindall2024efficient} and near-Clifford approaches \cite{begusic2023fast}. However, given that disproving quantum advantage claims now requires significant intellectual effort compared to earlier demonstrations such as factoring the number 15 \cite{vandersypen2001experimental}, it is apparent that the computational power of noisy devices is becoming worthy of consideration for practical quantum computing applications. Yet hardware noise remains too overwhelming to implement quantum algorithms with theoretically proven complexity advantages. A line of research that emerged from the desire to make use of noise-constrained computing is the class of \ac{VQA}, or specifically \ac{VQE}. In the following section, we will examine what this class of algorithms does, their promises, and their caveats.
+
+
+\subsection{Variational Quantum Eigensolver}\label{sec:vqe}
+
+The variational method, also known as the Rayleigh–Ritz method, is an approximate technique for solving eigenvalue problems. In quantum physics, it is applied when one seeks the ground state and corresponding energy of a known Hamiltonian $H$ but finds an analytic solution infeasible \cite{zettili2009quantum}. Such situations commonly occur in quantum chemistry, a discipline focused on predicting molecular and material properties from quantum-mechanical first principles, which is inherently hard because the interaction space typically grows exponentially with the number of electrons involved. A concise overview of how these problems are mathematically modeled will be provided later \todo{ref within thesis.}. 
+
+In the Rayleigh–Ritz method, a parameterized \textit{trial wave function} $\ket{\psi(\bm{\theta})}$ is introduced, where $\bm{\theta} = (\theta_0, \dots, \theta_n)$. Within the quantum-computing community, this trial wave function is commonly called \textit{ansatz}. The expectation value is then calculated as 
+\begin{equation}
+    E (\bm(\theta)) = \expval{H}{\psi{(\bm{\theta})}}\geq E_{gs} \;,
+\end{equation} where this energy estimate is always bounded from below by the exact ground-state energy $E_{gs}$. The reason is that $\ket{\psi(\bm{\theta})}$remains a valid state vector for any parameter choice, and $E_{gs}$ represents the minimal eigenvalue. The aim is to find parameter values, such that $E (\bm(\theta))$ is minimized. This minimization typically involves three steps:
+\begin{enumerate}
+    \item Initialization 
+    \item Optimization (using numerical methods such as gradient-based, gradient-free, or analytical techniques)
+    \item Evaluation 
+\end{enumerate}
+Once the estimated energy is satisfactory, the procedure is stopped. Commonly, ansätze used in the literature, e.g., Hartree-Fock \cite{slater1951simplification}, or \ac{DMRG}  \cite{schollwock2005density}, include simplifications that make the process numerically feasible but restrict the method to heuristic use. The idea behind the Variational Quantum Eigensolver (VQE) \cite{peruzzo2014variational,kandala2017hardware,tilly2022variational,mcclean2016theory}, which remains still heuristic, is to implement classically intractable ansätze on a quantum computer while carrying out optimization steps classically to reduce quantum hardware resources. Hence, VQEs are referred to as quantum–classical hybrid algorithms. 
+
+We now briefly outline the steps involved in implementing a \ac{VQE}.
+The first step is to decide which ansatz to use. In VQEs, these ansätze are parameterized unitary operations $U(\bm{\theta})$, and different kinds have been proposed to address various priorities. 
+To mention some, there is the \textit{Hardware-efficient} ansatz utilizes rotation axes and entangling gates native to the specific hardware platform without incurring compilation overhead. Entangling operations are restricted to qubits with direct-neighbor interactions to avoid SWAP gates, and local rotation layers alternate with entangling layers. As its name suggests, this ansatz optimizes hardware implementation efficiency relative to algorithmic circuit depth, making it particularly popular in early VQE hardware demonstrations \cite{kandala2017hardware}. While it can, in principle, approximate any quantum state, meaning no domain-specific information is incorporated, it suffers from barren plateaus \cite{holmes2022connecting}, i.e. vanishing gradients rendering the optimization processes intractable.
+The \textit{unitary coupled-cluster} ansatz was the first proposed within the quantum–classical hybrid framework. We will discuss its details when quantum chemistry is introduced, but note here that coupled-cluster theory is considered the ``gold standard''  in quantum chemistry for benchmarking groundstate energies beyond Hartree–Fock calculations \cite{bartlett2007coupled}. It employs an exponential ansatz that cannot be implemented tractably in a variational manner. However, its unitarized version can be efficiently realized on quantum devices \cite{peruzzo2014variational, mcclean2016theory}. Nevertheless, such ansätze typically scale as $\mathcal{O}(N^4)$ in circuit depth, where $N$ the number of qubits, or spin orbitals, making them impractical to implement on NISQ-devices for larger systems that are not classically treatable.
+
+Two popular methods combine the advantages of hardware-efficient and the problem-aware unitary coupled-cluster approaches: The \textit{quantum number preserving} ansatz \cite{anselmetti2021local} identifies minimal local gate blocks (restricted to nearest-neighbor interactions) that preserve essential quantum numbers during ground-state calculations, such as particle number and spin symmetries. These blocks enable the construction of ansätze that respect symmetry constraints and device limitations. 
+Further, \textit{ADAPT}-VQE \cite{grimsley2019adaptive} offers an alternative approach to reducing the complexity of unitary coupled-cluster ansätze. Rather than including all terms from the unitary coupled-cluster ansatz, this method iteratively grows the ansatz by appending only those terms that exhibit the largest gradients with respect to the energy expectation value. This adaptive method systematically builds up circuit depth while prioritizing the most impactful terms for energy minimization.
+
+How are gradients extracted within VQE? VQE typically addresses cases where analytical computation of the optimum $\frac{\partial E(\bm{\theta})}{\partial \theta_i} = 0$is prohibitive, necessitating the use of numerical optimizers. In prototypical studies involving test systems small enough to permit classical simulation of the entire workflow, researchers can employ either gradient-free methods such as COBYLA \cite{ragonneau2023pdfo:}, or gradient-based approaches such as L-BFGS \cite{liu1989on}, and popular machine-learning optimizer ADAM \cite{kingma2014adam}. Gradients, and higher-order partial derivatives when necessary, can be estimated through finite difference approximation or computed using automatic differentiation \cite{paszke2017automatic}. The latter approach has been recently incorporated into quantum computing software libraries such as PennyLane \cite{bergholm2018pennylane}, enabling convenient computation for VQE.
+
+For future settings where quantum ansätze are anticipated to have parameter counts beyond what classical gradient estimation schemes can manage, analytical gradients can be estimated using the quantum computer itself. This method, called \textit{parameter shift rules} \cite{mitarai2018quantum, schuld2018evaluating}, exploits the fact that gradients of expectation values from unitary ansätze can be expressed exactly as differences of the same operators evaluated with shifted parameters (typically $\theta \pm \pi/2$). While this approach provides exact gradients without approximation error, it requires additional circuit evaluations proportional to the number of parameters.
+
+The evaluation of expectation values is crucial for the practicality of the entire workflow. As mentioned in \todo{write and refer to the measuremtn section}, \ac{QPE} cannot be employed on NISQ hardware, requiring the use of sampling-based schemes. The variance of each measured term scales with the shot noise limit $\mathcal{O}(1/\epsilon^2)$.The number of terms depends on the cost function-defining operator; for the electronic-structure Hamiltonian, the number of Pauli strings scales as $\mathcal{O}(N^4)$. Since chemical accuracy requires $\epsilon = 1.6 \mathrm{mH}$, the overall shot count becomes prohibitively large, even without considering measurements for gradient estimation. 
+
+Currently, significant efforts focus on reducing the number of terms to be measured. A natural approach involves grouping mutually commuting terms, since they share a common eigenbasis, making expectation value estimation amenable to classical postprocessing. However, since quantum hardware measurements are typically constrained to the computational basis, the required rotation operations, which scale depth-wise as $\mathcal{O}(N^2/ log(N))$, are not implementable on current hardware \cite{verteletskyi2020measurement}. Consequently, many schemes have been proposed that consider more restrictive classes of commuting groupings, limiting the measurement basis to single-qubit measurements. A recent review can be found in \cite{patel2025quantum}.
+
+Employing auxiliary qubits as in the Hadamard test \todo{write and ref hadamard test}is a possible avenue, but this approach is reserved for the fault-tolerant era because the routine involves deep circuits arising from numerous controlled-unitary operations. The shot count for estimating the overall expectation value of $H$ scales $\mathcal{O}(\lambda^2/\epsilon^2)$, where $\lambda$ is the 1-norm of $H$. Since resource requirements for \ac{QPE}, the workhorse for fault-tolerant quantum computing, also scales with the 1-norm, tremendous efforts have focused on developing decompositions to minimize this scaling, most successfully demonstrated in \cite{oumarou2024accelerating, patel2025global}.
+
+A more NISQ-friendly, low circuit-depth approach is provided by the classical shadow protocol  \cite{huang2020predicting}. Since this technique becomes a key aspect of  \todo{write chapter and refer here} , we reserve detailed discussion for later. However, we note that it offers a highly promising framework for obtaining a density matrix estimator from polynomially many random measurements of the prepared quantum state, which can then be used to accurately compute expectation values for a specific class of observables.
+
+As previously stated, \ac{VQE} is envisioned to be applied without error correction. Inevitably, estimated expectation values will be corrupted by hardware noise. The prevalent proposal to overcome this issue is \textit{error mitigation} \cite{cai2023quantum}an empirical method that learns recurrent hardware errors from measurement data so their effects can be compensated through classical post-processing. We mention \ac{ZNE}here due to its intuitive nature and popularity, and refer to \todo{refer to cdr in text}, which is the scheme used in \cite{schroeder2024deterministic}. 
+As the name suggests, \ac{ZNE}infers the noise-free estimator for the targeted inaccessible expectation value $\Tr(O \rho_0)$ by extrapolating data from expectation values with amplified noise. Specifically, the estimation for the noisy implementation of $\rho$ is given by $\Tr(O \rho_{\lambda_1})$ Noise is amplified by implementing even noisier versions through effectively inserting identity operations via applying unitaries and their inverses in succession, which makes the circuit deeper while implementing the same unitary. We then obtain $d$ estimators of the expectation values $\{ \Tr(O \rho_{\lambda_i}) \}_{i=1}^d$ with $d$ varying noise levels. References ~\cite{temme2017error, cai2023quantum}  showed that for small noise levels $\lambda$, the relationship between noise level and expectation value estimation follows a polynomial relation $\Tr (O \rho_\lambda) \approx \sum_{k = 0}^{d-1} \beta_k \frac{\lambda^k}{k!}$.  For the best-fit parameters $\beta_k$, the zero-noise expectation can be calculated at  $\lambda = 0$. 
+
+A simple thought experiment illustrates that error mitigation always requires exponential sampling overhead to converge to the error-free output: imagine access to an oracle that can differentiate between faulty and error-free outputs. Even with such a powerful oracle, given a noise rate of $\lambda$, only $e^{-\lambda}$ samples will be noise-free. To obtain sufficient noise-free samples, we need to collect at least $e^\lambda$ samples \cite{cai2023quantum}. Thus, error mitigation will always be a workaround until error-correcting codes become experimentally available, only suitable for suppressing small error rates in prototypical implementations but not feasible for elevating NISQ to the computational power of fault-tolerant quantum computers. Yet, experts claim that one should not be too pesimisitic about the efficacy of error mitigation \cite{zimboras2025myths}. Since the sample overhead is exponetnial but the exponents scales lineary with the error rare $\epsilon$, qubit count $n$, and the circuit depth $L$ $\mathcal{O}(\exp(\epsilon n L))$ \cite{tsubouchi2023universal}, in practice if $nL \propto \epsilon^{-1}$, error mitigation is feasible. Also, error mittigation will be importtant in the early fault-tolerant regime to correct for small residual errors \cite{dutkiewicz2024error} or to reduce hardware requirements of error correcting codes \cite{suzuki2022quantum}.
+
+Despite the widespread adoption of \acp{VQE} as the leading paradigm for quantum applications on NISQ devices \cite{peruzzo2014variational, kandala2017hardware, arute2020hartree}, more and more theoretical and experimental evidence raises fundamental questions about their potential for demonstrating quantum advantage. This section examines the key limitations challenging the viability of VQE. 
+
+In recent years, numerous approaches have rigorously demonstrated troubling aspects of VQE. The classical optimization of quantum ansätze has been shown to be NP-hard \cite{bittel2021training}, while training suffers from vanishing gradients, known as barren plateaus \cite{mcclean2018barren}, which emerge in universal ansätze. Paradoxically, evidence suggests that barren plateau-free ansätze are classically simulable \cite{cerezo2023does}, alongside other classical simulability results  \cite{bermejo2024quantum, angrisani2024classically}. Furthermore, serious concerns arise from sampling complexity. Even under idealistic conditions, achieving chemical accuracy requires sampling $1/\epsilon^2 \approx 10^6$ times per term. Additionally, error mitigation resources scale exponentially even for logarithmically shallow circuit depths \cite{quek2022exponentially}. These factors collectively justify the healthy skepticism surrounding VQE as vehicle for demonstrating quantum advantage.
+
+This thesis approaches \ac{VQE} from two perspectives: implementation and application. 
+
+Regarding \textit{implementation}, while quantum computation is typically discussed with \ac{GBQC} in mind, there exists an equivalent but different formulation of quantum computing called \ac{MBQC} \cite{raussendorf2003measurement}. This approach implements quantum computing through quantum teleportation on large pre-prepared entangled resource states rather than sequential gate applications on static qubits. This paradigm offers an inherent gate-depth to qubit-count trade-off compared to \ac{GBQC}. Our work presented in \cite{schroeder2024deterministic} builds upon the primary proposal of \ac{MBVQE} \cite{ferguson2021measurement} and is replicated in Chapter \todo{refer the chapter correctly}.
+
+The second perspective concerns \textit{application}. Given the aforementioned challenges, it appears infeasible to expect \ac{VQE} to become practically viable for directly estimating ground state energies in the near term. However, ideas have emerged to use \ac{VQE} to generate quantumly efficient but classically intractable trial wave functions for classical workflows. Specifically, a quantum-enhanced auxiliary-field quantum Monte Carlo method has been proposed in Ref.~\cite{huggins2022unbiasing}. Within \ac{QUTAC}, the author investigated the efficacy and applicability of this approach on industrially motivated test systems, resulting in two publications. These results are summarized in Chapter \todo{add the references to the chapter}, together with a brief introduction to quantum chemistry in the quantum computing context. Additionally, a more ``classical'' use case for \ac{VQE} has been explored in \ac{NLP} through an intra-university collaboration, yielding one publication that will be discussed with a focus on classical data encoding in Chapter \todo{ref the chapter accordingly}.
+
+
+
+%There are a few proposals for the classical optimization of the cost function: \mari{Give the options as below, but which one do you choose and why?}
+
+%Stochastic gradient descent methods and resource frugal adaptions have been proposed \cite{kingma2014adam} \cite{kubler2020adaptive}. Another method is the quantum natural gradient descent method, which takes the information geometry of quantum states into account \cite{stokes2020quantum}. There are also non-gradient methods, such as the simultaneous perturbation stochastic approximation (SPSA) method \cite{spall1992multivariate}. A popular choice, however, is COBYLA, Constrained Optimization BY Linear Approximation, a well-established optimizer operating gradient-free \cite{powell1994direct}.
+
+% Since the optimization process is cast to classical hardware, VQEs enjoy reduced circuit complexity in terms of depth, which makes it a promising candidate for quantum practicality in the NISQ era \cite{preskill2018quantum}. 
+%  On the other hand, there are known fundamental limitations regarding its trainability. It has been reported that the gradient of the cost function vanishes exponentially with the number of qubits \cite{mcclean2018barren}, which renders the training of circuits exceeding the size of toy problems unfeasible.
+
+% Nonetheless, VQEs offer a highly versatile toolbox that can be utilized today - with the hope of finding practical usage, e.g., in subroutines of complex algorithms such as AFQMC \cite{huggins2022unbiasing}. 
+
+
+
 
 \end{document}

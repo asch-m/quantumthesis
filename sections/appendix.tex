@@ -1,0 +1,403 @@
+\documentclass[../main.tex]{subfiles}
+\graphicspath{{\subfix{../images/}}}
+\begin{document}
+
+
+\section{}{Appendix to Chapter ...}
+
+% \subsection{Overview of other previous works}~\label{app:overview}
+
+% The work by Ferguson et al. \cite{ferguson2021measurement} inspired further investigations of the performance and resource requirements of other VQE instances in the MBQC framework. Proietti et al.~\cite{proietti2022native} studied an MBQC native way to implement the Quantum Approximate Optimization Algorithm (QAOA) \cite{farhi2014a}, which makes use of the fact that operations that are diagonal in the computational basis are exceptionally efficient in MBQC as ``input'' and  ``output'' qubits coincide \cite{browne2006one}. They tested the MBQC algorithm by simulating this method in the context of the k-max cut problem.
+% Qin et al. \cite{qin2023applicability} showed an MBQC version of the Hamiltonian variational ansatz \cite{wecker2015progress} that makes use of efficient 2-body operators implemented in the same sense as the QAOA operator. Combined with local rotations on the input/output qubits, it is possible to generate all Pauli rotations.
+% Chan et al. \cite{chan2023hybrid} included these efficient MBQC-based multi-qubit Pauli-rotations, also referred to as Pauli-gadgets, within a gate-based circuit. This work included experiments on the IBM 7-qubit machine that indicate a possible advantage of operating gate-based hardware in MBQC manner.
+% Marqversen et al. \cite{marqversen2023applications} discuss and exhibit how MBQC can reduce hardware resources for applications such as VQE, demonstrate specific use cases, and introduce efficient ways to simulate MBQCs with tensor networks.
+% While Majumder et al. \cite{majumder2023variational} used almost the same MBQC pattern as in our work to generate their ansatz and acknowledge the importance of byproducts in MBVQE, but instead of correcting them, they utilize this randomness to learn probability distributions better in the context of generative modeling. A part of these works used post-selection to guarantee the convergence of variational algorithm~\cite{ferguson2021measurement, proietti2022native}, while others used different measurement bases than $R(\theta)$ and achieved determinism~\cite{chan2023hybrid, huang2022near, marqversen2023applications}. While sufficient attention was not given to determinism in the initial works of MBVQE, recent papers (including ours) discuss the problem extensively for distinct settings and applications. 
+
+% \section{Measurement-based quantum computing}\label{appendix:mbqc}
+
+% In MBQC, computation is carried out on a pre-prepared, highly entangled resource state by local measurements only. As a result, MBQC offers a trade-off in hardware requirements, specifically between qubit count and gate depth. In its original proposal~\cite{raussendorf2003measurement}, the resource state of choice is a graph state, more specifically the cluster state, 
+% \begin{equation}
+%    \ket{G} = \prod_{\{i,j\} \in E} CZ_{ij} \ket{+}^{\abs{V}},
+% \end{equation}
+% where this state has a direct correspondence to a graph $G = (V,E)$ with vertices $V$ and edges $E \subseteq \{ \{x,y\} \, | \, x,y \in V \, \mathrm{and} \, x \neq y \} $. Graph states have an equivalent definition using so-called stabilizers
+% \begin{equation}
+%   \ket{G} = X_i \otimes_{j \in N_A (i)} Z_j \ket{G}.
+% \end{equation} Paired with local measurements on the $XY$-basis $R(\theta) = \frac{\ket{0} \pm e^{i\theta}\ket{1}}{2}$, it has been shown that these two ingredients suffice to perform \textit{universal} and \textit{deterministic} quantum computing~\cite{raussendorf2003measurement}.
+
+% Let's review some essential results from Raussendorf's seminal work, which came together with a graphical rule to express the MBQC scheme neatly. Universality was shown by devising measurement patterns implementing an arbitrary single-qubit rotation and a CNOT gate (see Fig.~\ref{fig:basicMBQC}). Each piece can be computed deterministically and concatenated to realize any circuit.
+
+% % \begin{figure}
+% %    \centering
+% %    \includegraphics[width=0.7\linewidth]{mbvqe/Mnf.pdf}{
+% %    \phantomsubcaption\label{fig:eulerrot}
+% %    \phantomsubcaption\label{fig:cnot}
+% %    \phantomsubcaption\label{fig:noflow}
+% %    }
+% %    \caption{\textbf{A}: A 5-qubit measurement pattern that implements an arbitrary single-qubit rotation $U_x(\xi) U_z (\eta) U_x (\zeta)$, and \textbf{B}: a 4-qubit pattern that performs a CNOT gate. Both patterns have a distinctive measurement flow and can be executed deterministically.
+% %    \textbf{C}: The edge-wise decoration scheme by Ferguson et al. \cite{ferguson2021measurement} can result in non-correctable patterns, as shown here, not meeting the flow condition. In such cases, the standard MBQC correction scheme introduces a phase kickback on a different qubit, making it impossible to relate the erroneous post-measurement state to the correct one. Consequently, to achieve determinism, these samples must be discarded, leading to exponential sampling overhead. The color coding is the same as in Fig.~\ref{fig:detansatz} }
+% %    \label{fig:basicMBQC}
+% % \end{figure}
+%  Arbitrary single-qubit rotations $U_\mathrm{Rot} (\xi,\eta,\zeta) \ket{\psi_{in}}= U_x(\xi) U_z (\eta) U_x (\zeta)\ket{\psi_{in}}$ can be implemented starting from a $5$-qubit graph sate arranged as one-dimensional open chain
+% \begin{equation}
+%    \ket{G_5} = \prod_{i=0}^{3} \mathrm{CZ}_{\{i,i+1\}} \ket{\psi_{in}} \otimes_{i = 1}^{4} \ket{+},
+% \end{equation}  
+% teleporting the input qubit to the second qubit through an $X$-basis measurement $R(0)$ and successive measurements of the next three qubits in the rotated bases $R(\xi), R(\eta)$ and $R(\zeta)$. 
+% If we always project on the positive eigenvalues, the fifth qubit is precisely in the desired rotated state. This can be easily verified by translating the effects of the local measurement $R(\theta)$ back to the gate-based picture. 
+
+% For the sake of clarity, let's consider a $2$-qubit cluster state $\ket{G_2} = CZ_{1,2} \ket{ \psi_{in}}\ket{+}$, where $\ket{\psi_{in}}=\alpha\ket{0}+\beta\ket{1}$. Then, by projecting $\ket{\psi_{in}}$ onto the positive subspace of the $XY$-plane, we obtain
+% \begin{align}\label{eqn:HP}
+%    Proj_{R(\theta),1}  CZ \ket{\psi_{in}} \otimes  \ket{+} 
+%   & = 
+%    \frac{(\bra{0} + e^{i\theta}\bra{1}) (\alpha\ket{0}\ket{+}+\beta\ket{1}\ket{-})}{2} \\ \nonumber
+%    & = \frac{\alpha\ket{+} + \beta e^{i\theta} \ket{-}}{2} \\  \nonumber
+%    & = H P_{\theta}\ket{\psi_{in}} ,  
+% \end{align}
+% where $H$ is the Hadamard gate and $P_\theta$ the phase gate, equivalent to $U_z$ up to an irrelevant global phase $e^{i\theta/2}$. From Eq.~\ref{eqn:HP}, we can also see that an $X$-basis measurement is equivalent to teleporting the state to the next qubit under the application of a Hadamard gate.
+% Following this relationship, performing the $5$-qubit measurement pattern in Fig.~\ref{fig:basicMBQC} (A1) is nothing other than 
+% \begin{equation}
+%    HP_\xi HP_\eta HP_\zeta H \ket{\psi_{in}} 
+%  = e^{i \frac{(\zeta + \eta + \xi)}{2}} H U_z(\xi) U_x (\eta) U_z (\zeta) H \ket{\psi_{in}}.
+% \end{equation} 
+% We used the equivalence relation $H U_z H = U_x$ in the last step.
+% Up to the Hadamard gates, we have indeed simulated the effects of an Euler rotation. The Hadamard gates are not of concern as they get eliminated by the initial teleportation step, the $X$ measurement, of the next computation. 
+
+% In the original manuscript, Raussendorf et al.~designed a $15$-qubit pattern for implementing a CNOT gate \cite{raussendorf2003measurement}. 
+% A more compact pattern was proposed ~\cite{kashif2023physical} that utilizes the inherent availability of $CZ$-gates in the resource state (see Fig.~\ref{fig:basicMBQC}). Implementing a $CZ$-gate is exceptionally simple in this MBQC framework, which is accomplished by teleporting the respective states into two connected qubits. 
+% Then, we can treat, without measurement, the outputs to be the expected entangled state. From this, we can construct a CNOT-gate by sandwiching the target qubit with Hadamard gates. This is achieved by two $X$-measurements, as discussed previously.
+
+% The above derivations hold, however, only if we project always on the positive eigenvalue in our measurements. Yet, quantum measurements are a genuinely random process -- hence, the significance of MBQC depends on whether these probabilistic outcomes can be altered to be \textit{deterministic}. As can be surmised from the success of MBQC, its proposal combined techniques to equalize all computation branches \cite{raussendorf2003measurement}. These techniques use the stabilizers of the resource state that induce equality relations of additional $X$- and $Z$-gates, which are precisely the byproducts generated through random measurements.
+
+% Let's take the $5$-qubit measurement pattern (Fig.~\ref{fig:basicMBQC}) as an example again and assume that we projected the first qubit on the negative eigenstate of the measurement basis.
+% We treat the negative projector as $\bra{1} = \bra{0} X$ and commute the $X$ to the right side of the rotation operator $U(\theta)$, which becomes then a $Z$. These additional Pauli operations are commonly referred to as byproduct operators. Using the graph stabilizer, the following equality holds
+% \begin{equation}
+% \begin{aligned}
+%        \bra{1}_1 U(\theta)_1 \ket{G_5} & = \bra{0}_1 X_1 U(\theta)_1 \ket{G_5} \\ 
+%        & = \bra{0}_1 U(\theta)_1 Z_1 \ket{G_5} \\
+%    & = \bra{0}_1 U(\theta)_1 X_2 Z_3 \ket{G_5},
+%    \label{eqn:Z-error}
+% \end{aligned}
+% \end{equation}
+% where $U(\theta) = HP_\theta$. We successfully related the \textit{wrong} measurement outcome to the \textit{correct} one by transferring the $X$ and $Z$ byproducts to the unmeasured qubits. The $Z$-byproducts of the yet unmeasured qubits can be compensated analogously to \ref{eqn:Z-error}; for the $X$-errors, we use the relation
+% \begin{equation}
+%    \bra{0} U(\theta) X = \bra{0} e^{i\theta} U(- \theta).
+% \end{equation} 
+% This means that the $X$-byproduct can be canceled by choosing the measurement basis $R(- \theta)$. 
+% As the choice of measurement basis depends on the measurement outcome of past measurements, measurements are conducted adaptively and, most importantly, introduce a temporal and causal order. 
+% This order raises a notion of \textit{flow} \cite{danos2006determinism,browne2007generalized}, which can be used to identify whether certain measurement patterns hold enough degrees of freedom to truly correct all measurement errors that might appear during the process. If not, the pattern cannot be computed deterministically, requiring postselection with unfavoured exponential sampling cost. Byproduct operators are a feature of the measurement basis. Specific choices, such as the Pauli bases, have forgiving properties; in this case, measurements can even be conducted in parallel without adaptive corrections ~\cite{raussendorf2003measurement, anders2006fast}.
+% \begin{figure}
+%    \centering
+%    \includegraphics[width=0.45\linewidth]{mbvqe/flow.pdf}
+%    \caption{Caption}
+%    \label{fig:flow}
+% \end{figure}
+
+
+
+%\section{Previous Work}
+
+%While MBQC was initially considered merely a theoretical concept to bridge the field of quantum computation and quantum information science due to the required high qubit counts, it has regained interest as a circuit-depth reducing technique in the current realm of gate-based NISQ computing \cite{broadbent2007parallelizing}. Hardware execution of currently known quantum algorithms is often prohibited by the limited number of gates that can be applied before hardware noise dominates the output signal. In the gate-based picture, MBQC requires the circuit depth for the initial resource state preparation; the computation is only implemented with local measurements. While the final MBQC computation time depends on the number of adaptive measurements, the implemented circuit is considerably \textit{shallow}. This observation triggered research of hybrid schemes that marry MBQC and gate-based NISQ algorithms.
+%The first applied study of this kind was conducted by Ferguson et al. \cite{ferguson2021measurement}, who introduced two possible ways to translate the popular gate-based NISQ algorithm, the VQE, to an algorithm suited for MBQC. One is to translate an already known gate-based ansatz to an MBQC measurement pattern utilizing translation methods introduced in ~\cite{raussendorf2003measurement}. This is thought to be attractive for ansaetze that contain a large amount of Clifford operations. It is known that Clifford operations translate to measurement patterns only consisting of measurements in the Pauli bases. In this case, all measurements can be performed in parallel at a single time step. A more quantum resource-conscious possibility to treat Clifford operations would be to precompute the post-measurement graph state classically by either employing the Gottesmann-Knill theorem \cite{aaronson2004improved} or graph-based measurement rules for graph states ~\cite{hein2006entanglement}.
+
+%The second method for combining VQE and MBQC is to design a problem-inspired ansatz that is particularly simple to implement in the MBQC framework. Ferguson et al.~proposed such an ansatz to study perturbed instances of the toric code Hamiltonian. The ground state of the unperturbed Hamiltonian is known to be a graph state. In the proposed ansatz, this ground state is chosen as the baseline, the \textit{ansatz qubits}, which will be tuned according to the perturbation using an \textit{edgewise} modification scheme. The \textit{strength} of entanglement between two connected qubits in the ground state graph is weakened by the actions of $R(\theta)$-basis measurements of the attached auxiliary qubits, which are called \textit{decoration qubits}. The suggested ansatz seems especially useful for cases with a strong perturbation on a single local site. Notably, the overall measurement pattern for the suggested edgewise decoration scheme will lack \textit{flow} \cite{danos2006determinism,browne2007generalized} if the degree of the ansatz graph is larger than one. 
+
+%The work by Ferguson et al. inspired further investigations of the performance and resource requirements of other VQE instances in the MBQC framework. Proietti et al.~\cite{proietti2022native} studied an MBQC native way to implement the Quantum Approximate Optimization Algorithm (QAOA) \cite{farhi2014a}, which makes use of the fact that operations that are diagonal in the computational basis are exceptionally efficient in MBQC as ``input'' and  ``output'' qubits coincide \cite{browne2006one}. They tested the MBQC algorithm by simulating this method in the context of the k-max cut problem.
+
+%Qin et al. \cite{qin2023applicability} showed an MBQC version of the Hamiltonian variational ansatz \cite{wecker2015progress} that makes use of efficient 2-body operators implemented in the same sense as the QAOA operator. Combined with local rotations on the input/output qubits; it is possible to generate all Pauli-rotation.
+
+%Chan et al. included these efficient MBQC-based multi-qubit Pauli-rotations, also referred to as Pauli-gadgets, within a gate-based circuit. This work included experiments on the IBM 7-qubit machine that indicate a possible advantage of operating gate-based hardware in MBQC manner.
+
+\subsection{Graph state modifications}\label{appendix:graph}
+Here, we recall some valuable relations of graph states that are used in this work. Local  complementations (LC) implements \cite{adcock2020mapping,van2004graphical} the local unitary transformation of the following form:
+\begin{equation}
+ \ket{G_{LC}} = \sqrt{-iX_i} \bigotimes_{j \in \mathcal{N}(i)} \sqrt{iZ_j} \ket{G}.
+\end{equation}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\linewidth]{mbvqe/graphmod.pdf}{
+    \phantomsubcaption\label{fig:lclu}
+    \phantomsubcaption\label{fig:measpattern}
+    }
+    \caption{\textbf{Left}: Graph states linked through local complementation are local Clifford equivalent. In our experiments, we choose to implement the left graph since it can be directly executed on the IBM device. \textbf{Right}: By preparing the heavy-hex graph state and measuring the blue qubits in the illustrated bases, it is possible to generate a cluster state without the need for SWAP gates. However, it's important to note that the measurement outcomes of Pauli measurements on graph states are not graph states but rather local unitary equivalents. Despite this, these ``byproduct'' operators can be efficiently computed from the measurement outcomes of the auxiliary qubits and accounted for in subsequent calculations due to Gottesman–Knill theorem.}
+    \label{fig:lc}
+\end{figure}
+
+
+If we want to implement a specific graph state, we could choose to implement the representative from the LC equivalence class with the lowest edge count or the representative that best suits the hardware topology.
+That is shown in Fig.~\ref{fig:lclu} -- the edge between the two qubits in the middle layer requires SWAP gates if implemented naively on quantum hardware with heavy-hex connectivity. However, it is easy to see that this edge can eliminated by local complementation on the parent-qubit. This graph can be directly mapped onto the respective hardware.
+
+To generate a cluster state with constant gate depth from hardware featuring heavy-hex connectivity, we start by creating a heavy-hex graph state. 
+%\begin{figure}
+%    \centering
+%    \includegraphics[width=0.45\linewidth]%{mbvqe/stateprep.pdf}
+%    \caption{Caption}
+%    \label{fig:stateprep}
+%\end{figure}
+It is known that graph states stay graph states up to specific local unitaries under Pauli measurements, and efficient graphical rules were developed to predict the post-measurement state \cite{hein2006entanglement, anders2006fast}. 
+By using these rules and minding the commutation relation of measurement projectors and the emerging local unitaries (see Table \ref{tab:commutation_relations}), it is possible to design an effective measurement pattern illustrated in Fig.~\ref{fig:measpattern}. 
+
+With this scheme, each \textit{honeycomb} becomes a square of the cluster state. Hence, on \texttt{ibmq\_ehingen}, we can generate a $2\times3$ cluster state, and on the 127-qubit machine \texttt{ibmq\_nazca} $4\times7$.
+
+\begin{table}
+    \centering
+    \begin{tabular}{ccc}
+         $P_{x,\pm} \sigma_z = \sigma_z P_{x,\mp}$, & \quad &  $P_{y,\pm} \sqrt{-i\sigma_z} = \sqrt{-i\sigma_z} P_{x,\pm}$, \\ 
+         $P_{y,\pm} \sigma_z = \sigma_z P_{y,\mp}$, & \quad &  $P_{y,\pm} \sqrt{i\sigma_y} = \sqrt{i\sigma_y} P_{y,\pm}$, \\
+         $P_{z,\pm} \sigma_z = \sigma_z P_{z,\pm}$, & \quad &  $P_{y,\pm} \sqrt{-i\sigma_y} = \sqrt{-i\sigma_y} P_{y,\pm}$, \\
+         \quad & \quad &                                        $P_{y,\pm} \sqrt{i\sigma_z} = \sqrt{i\sigma_z}P_{x,\mp}$, \\
+         
+         \quad & \quad & \quad \\
+         
+         $P_{x,\pm} \sqrt{-i\sigma_z} = \sqrt{-i\sigma_z} P_{y,\mp}$,                & \quad &  $P_{z,\pm} \sqrt{-i\sigma_z} = \sqrt{-i\sigma_z} P_{z,\pm}$, \\
+         $P_{x,\pm} \sqrt{i\sigma_y} = \sqrt{i\sigma_y} P_{z,\textcolor{red}{\mp}}$, & \quad &  $P_{z,\pm} \sqrt{i\sigma_y} = \sqrt{i\sigma_y} P_{x,\pm}$, \\
+         $P_{x,\pm} \sqrt{-i\sigma_y} = \sqrt{-i\sigma_y} P_{z,\mp}$,                & \quad &  $P_{z,\pm} \sqrt{-i\sigma_y} = \sqrt{-i\sigma_y} P_{x,\textcolor{red}{\mp}}$, \\
+         $P_{x,\pm} \sqrt{i\sigma_z} =\sqrt{i\sigma_z} P_{y,\mp}$,                   & \quad &  $P_{z,\pm} \sqrt{i\sigma_z} = \sqrt{i\sigma_z} P_{z,\pm}$. \\
+    \end{tabular}
+    \caption{The commutation relations play an essential role in simulating post-measurement states of multiple Pauli measurements on a graph state, as the resulting state is a graph state up to local Clifford operations. These additional operations alter successive measurements but in an efficiently simulable manner. The precise form of these operators and the table can be found in \cite{hein2006entanglement}. We opted to include the commutation relations in the appendix due to the presence of typos in the highlighted equations of the original source. }
+    \label{tab:commutation_relations}
+\end{table}
+
+
+
+%\section{Ansatz for the 4-qubit $XY$-model}
+%\label{appendix:xy}
+%\begin{figure}[t]
+%%    \centering
+%    \includegraphics[width=0.9\textwidth]{mbvqe/tree_ansatz_circ.png}
+%    \caption{Circuit ansatz to find the ground-state energy of the $4$-qubit $XY$-model. We show the measurement in the $Y$-basis -- for the measurement in the $X$-basis, the $S^\dagger$ gates at the end of the circuits have to be removed.}
+%    \label{fig:circ_ansatz_xy}
+%\end{figure}
+% \begin{figure}[t]
+% \centering\includegraphics[width=0.5\linewidth]{mbvqe/gb_tree-circ.pdf}
+%     \caption{The same state as the deterministic post-measurement state generated by the MBVQE ansatz in Fig. \ref{fig:circ_ansatz_xy} can be prepared with this circuit. }
+%     \label{fig:gb4qubit}
+% \end{figure}
+%In Fig.~\ref{fig:circ_ansatz_xy}, we show the ansatz circuit for the MBVQE algorithm (with a final measurement in the $Y$-basis) to find the ground-state energy of the Hamiltonian in Eq.~\eqref{eq:4_qubit_ham}. 
+%This section provides a detailed illustration of the adaptive byproduct correction using this tree-shaped MBVQE ansatz. 
+%In Section~\ref{sec:detmbvqe}, we discussed how byproducts can be shifted to unmeasured qubits using commutation relations of the additional $Z$ and $X$ Paulis with respect to measurement-induced unitary $U_z(\theta)H$, and the graph state stabilizers. The same results can be shown by studying the implemented quantum circuit in Fig. \ref{fig:circ_ansatz_xy}.
+
+%At first sight, it looks as if three adaptive measurements are needed.
+%However, we can use the fact that  $X S^\dagger = S^\dagger Y$ and $YH=HY$.
+%These identities allow us to move the last two Pauli-corrections on qubits $q_3$ and $q_6$ to the end of the circuit right before the measurements.
+%These corrections can then be incorporated by post-processing of the final measurement outcomes.
+%For instance, in the original circuit for qubit $q_6$, we have to apply $Y$ gate if the measurement outcome of qubit $q_2$ is $1$.
+%We can shift this Pauli correction right before the measurement and find that we would need to apply a $Y=ZX$ gate then.
+%The $Z$ gate has no effect, while the $X$ gate flips the computational basis.
+%However, at this point, we can equally measure qubit $q_6$ and flip the outcome depending on the measurement outcome of qubit $q_2$.
+
+
+%The only location where we are not allowed to move the Pauli correction to the end is at qubit $q_1$, since $X U_z(\theta) = U_z(-\theta) X$. 
+%\mari{why do you loose symmetry between $q_1$ and $q_2$? Also, maybe you want to emphasize somewhere that in Qiskit qubit counts start from $0$, when in the main text we start from $1$, otherwise it can get confusing.}
+%Therefore, depending on the measurement outcome of qubit $q_0$, we need to apply a positive or negative rotation around $\pi/2$.
+%We thus end with a circuit with only one adaptive measurement depending on the measurement outcome on qubit $q_0$.
+
+%As mentioned in the main text, we use additionally a second strategy to correct for byproducts. 
+%Besides using dynamic circuits (adaptive measurements), we also implemented a postselection strategy in which we only select those events, where we measured $q_0$ to be in the $\ket{0}$ state. We effectively moved the measurement basis to be the computational basis by implementing  the $H$ and $R(\theta_1)$ gates before the measurement. 
+
+%We ran both strategies for $20$ different values of $\theta_1$ between $0$ and $\pi$.
+%To mitigate coherent noise, we employed randomized compiling~\cite{wallman2015noise} and generated $100$ equivalent circuits for each point.
+%We ran each circuit on \texttt{ibm\_algiers} using $1000$ shots, which means we use $100\, 000$ shots for each data point.
+%However, in the postselection strategy, we have to filter out roughly $50\%$ of the events, when we measured qubit $q_0$ in state $\ket{1}$ instead of $\ket{0}$.
+% After the final measurement correction in either of our schemes, we are effectively implementing the gate-based ansatz in Fig.~\ref{fig:gb4qubit}.
+
+\subsection{Clifford-data regression}
+\label{appendix:cdr}
+Due to noise in the quantum hardware, expectation values extracted from circuit measurements have to be post-processed.
+Several error-mitigation strategies exist, such as zero-noise-extrapolation~\cite{PhysRevLett.119.180509}, self-mitigation~\cite{ARahman:2022tkr}, or probabilistic error cancellation~\cite{van2023probabilistic,gupta2023probabilistic}.
+For our experiments, we choose Clifford-data regression~\cite{Czarnik2021errormitigation} since dynamic circuits can be easily incorporated into this framework.
+
+Given a parametrized circuit $\mathcal{C}(\theta_1,\dotsc \theta_n)$ and a Hamiltonian $H$, of which we try to estimate the expectation value $\bra{\psi}H\ket{\psi}$ at some given point $(\theta_1,\dotsc \theta_n)$, we first evaluate the circuit at near-Clifford points, i.e., we substitute some of the parameters by multiples of $\pi/2$, $\theta_i = n\cdot\pi/2,\ n\in \mathbb{N}$, for which the circuit can be simulated efficiently classically.
+At these so-called regression points, we can find a relationship between the measured, noisy expectation values $\expval{H}{\psi}_\mathrm{noisy}$, and the exact, simulated ones,
+\begin{equation}
+    \expval{H}{\psi}_\mathrm{exact}=f(\expval{H}{\psi}_\mathrm{ noisy},a_0,\dotsc a_n),
+\end{equation}
+where $a_i$ are model parameters.
+In this work, we assume a linear relationship, i.e.,
+\begin{equation}
+    \expval{H}{\psi}_\mathrm{exact}=a_0 \expval{H}{\psi}_\mathrm{noisy}+a_1,
+\end{equation}
+which can be justified by the assumption of the existence of a global noise channel \cite{Czarnik2021errormitigation}.
+
+
+\section{Hyperparamter tuning}
+\label{sec:apn-hyp}
+\todo{ask mari about what would be the appropiate way to include this work?}
+A randomized search is performed to find the best hyperparametrs given per model and data set. $50$ configurations, train them on the task and evaluate their performance on the development set. To avoid overfitting, we perform early stopping on the training if development loss does not decrease for five consecutive epochs. Troughout all experiments, we utilize the \textit{Adam} optimizer provided by PyTorch. Since our largest model HAM has at most $\sim500k$ parameters (dictated by the embedding space), we limit the random search to configuration with less-than or equal number of parameters to ensure a fair comparison. In practice, we find RNNs, LSTMs and CNNs perform very well with as low as $40k$ parameters. What follows is a list of all hyperparameters we evaluated:
+\begin{itemize}
+    \item \textbf{Batch size:} $[64, 128, 256]$;
+    \item \textbf{Learning rate:} $[10^{-2}, 10^{-3}, 10^{-4}]$; 
+    \item \textbf{Hidden size:} For RNNs and LSTMs, the size of the hidden representation $[100, 300, 500]$;
+    \item \textbf{Layers:} For RNNs and LSTMs, the number of layers of the recurrent block $[1, 4, 8]$. For MLP, the total number of layers including input and output $[ 3, 4, 5 ]$. For CNNs, the total number of convolutional layers $[ 3, 4, 5 ]$. For HAM, PEFF, SIM and CIRC, the number of repeated applications of the ansatz, analogous to the number of layers $[8, 16, 32]$;
+    \item \textbf{Channels:} For CNNs, the number of output channels of each convolutional layer $[ 8, 16, 32, 64, 128]$;
+    \item \textbf{Kernel size:} For CNNs, the kernel dimension of each convolutional layer $[ 3, 5, 7 ]$;
+    \item \textbf{Circuit:} The ansatz $U_\theta$ used to prepare state $\psi$. We experiment with three hardware-efficient ans\"atze inspired by circuits from \cite{Sim2019circ} and illustrated in Figure \ref{fig:ansz}. These ans\"atze are designed to explore different levels of entanglement (the quantum counterpart of correlation) and gate complexity. The first is a non-entangling circuit composed of single-qubit rotations, exhibiting linear complexity with respect to the number of qubits. The second is an entangling circuit arranged in a ring configuration, also scaling linearly in gate count. The third is an all-to-all entangling circuit, which scales quadratically. $[\texttt{Baseline, Ring, All-to-all}]$.
+    \item \textbf{\# Pauli strings:} For SIM, the number of Pauli strings composing the Hamiltonian $[50, 100, 500, 1000]$.
+\end{itemize}
+Tables \ref{tab:hyp-baseline} and \ref{tab:hyp-ham} shows the final selection of best-performing hyperparameters used in the main experiment of Section \ref{sec:set}.
+
+\begin{figure}[t]
+    \centering
+    % Circ base
+    \begin{subfloat}[] {
+        \begin{tikzpicture}
+        \node[scale=0.6]{
+        \begin{quantikz}[column sep=0.3cm]
+ &  & \gate{R_X}\gategroup[3,steps=3,style={dashed,rounded corners, inner xsep=2pt}, background]{{}}    & \gate{R_Y} & \gate{R_Z} & & \\
+ &  & \gate{R_X}    & \gate{R_Y} & \gate{R_Z} & & \\
+ &  & \gate{R_X}    & \gate{R_Y} & \gate{R_Z} & &
+\end{quantikz} %\ctrl{1}
+        };
+        \end{tikzpicture}
+        }
+    \end{subfloat}
+    % Circ 14
+    \begin{subfloat}[] {
+        \begin{tikzpicture}
+        \node[scale=0.4]{
+        \begin{quantikz}[column sep=0.3cm] %\gategroup[3,steps=5,style={dashed,rounded corners, inner xsep=2pt}, background]{{}}
+ &  & \gate{R_Y}\gategroup[3,steps=8,style={dashed,rounded corners, inner xsep=2pt}, background]{{}}    & \ctrl{1}   &              & \gate{R_X}    & \gate{R_Y}    & \ctrl{1}   &              & \gate{R_X}    & & \\
+ &  & \gate{R_Y}    & \gate{R_X} & \ctrl{1}     &               & \gate{R_Y}    & \gate{R_X} & \ctrl{1}     &               & & \\
+ &  & \gate{R_Y}    &            & \gate{R_X}   & \ctrl{-2}     & \gate{R_Y}    &            & \gate{R_X}   & \ctrl{-2}     & &
+\end{quantikz} %\ctrl{1}
+        };
+        \end{tikzpicture}
+        }
+    \end{subfloat}
+    % Circ 6
+    \begin{subfloat}[] {
+        \begin{tikzpicture}
+        \node[scale=0.4]{
+        \begin{quantikz}[column sep=0.3cm]   
+ &  & \gate{R_X}\gategroup[3,steps=10,style={dashed,rounded corners, inner xsep=2pt}, background]{{}}     & \gate{R_Z} & \ctrl{1}   & \ctrl{2}    & \gate{R_X}    &               & \gate{R_X}    &               & \gate{R_X}    & \gate{R_Z} & & \\
+ &  & \gate{R_X}    & \gate{R_Z} & \gate{R_X} &             & \ctrl{-1}     & \ctrl{1}      &               & \gate{R_X}    & \gate{R_X}    & \gate{R_Z} & &\\
+ &  & \gate{R_X}    & \gate{R_Z} &            & \gate{R_X}  &               & \gate{R_X}    & \ctrl{-2}     & \ctrl{-1}     & \gate{R_X}    & \gate{R_Z} & &
+\end{quantikz} %\ctrl{1}
+        };
+        \end{tikzpicture}
+        }
+    \end{subfloat}
+    \caption{
+    Circuit ansätze explored in the experiment. For the sake of visualization, the image shows ansätze for $n=3$. Since the experiments use different values, we extend the patterns to act on more qubits. 
+    (a) Non-entangling ansatz
+    (b) Ring ansatz
+    (c) All-to-all ansatz. (b) and (c) are respectively circuit 14 and 6 from~\cite{Sim2019circ}}
+    \label{fig:ansz}
+\end{figure}
+
+\begin{table*}
+\centering
+\begin{tabular}{lccc}
+\toprule
+\multicolumn{3}{c}{\textbf{LOG}} \\
+\textbf{Dataset} & \textbf{Batch size} & \textbf{Learning rate} \\
+\midrule
+SST2 & 64 & $10^{-3}$ \\
+IMDb & 64 & $10^{-2}$ \\
+AG News & 64 & $10^{-2}$ \\
+MNIST2 & 128 & $10^{-3}$ \\
+CIFAR2 & 256 & $10^{-3}$ \\
+Fashion & 64 & $10^{-3}$ \\
+\bottomrule
+\end{tabular}
+\begin{tabular}{lccccc}
+\toprule
+\multicolumn{5}{c}{\textbf{MLP}} \\
+\textbf{Dataset} & \textbf{Batch size} & \textbf{Learning rate} & \textbf{Hidden size} & \textbf{Layers} \\
+\midrule
+SST2 & 64 & $10^{-4}$ & 300 & 3 \\
+IMDb & 64 & $10^{-3}$ & 300 & 3 \\
+AG News & 64 & $10^{-3}$ & 100 & 3 \\
+MNIST2 & 256 & $10^{-4}$ & 100 & 3 \\
+CIFAR2 & 128 & $10^{-4}$ & 100 & 3 \\
+Fashion & 256 & $10^{-3}$ & 100 & 3 \\
+\bottomrule
+\end{tabular}
+\begin{tabular}{lccccc}
+\toprule
+\multicolumn{5}{c}{\textbf{LSTM}} \\
+\textbf{Dataset} & \textbf{Batch size} & \textbf{Learning rate} & \textbf{Hidden size} & \textbf{Layers} \\
+\midrule
+SST2 & 64 & $10^{-2}$ & 100 & 2 \\
+IMDb & 128 & $10^{-2}$ & 100 & 2 \\
+AG News & 128 & $10^{-3}$ & 100 & 2 \\
+\bottomrule
+\end{tabular}
+\begin{tabular}{lccccc}
+\toprule
+\multicolumn{5}{c}{\textbf{RNN}} \\
+\textbf{Dataset} & \textbf{Batch size} & \textbf{Learning rate} & \textbf{Hidden size} & \textbf{Layers} \\
+\midrule
+SST2 & 64 & $10^{-4}$ & 100 & 1 \\
+IMDb & 256 & $10^{-4}$ & 100 & 2 \\
+AG News & 256 & $10^{-4}$ & 100 & 1 \\
+\bottomrule
+\end{tabular}
+\begin{tabular}{lcccccc}
+\toprule
+\multicolumn{6}{c}{\textbf{CNN}} \\
+\textbf{Dataset} & \textbf{Batch size} & \textbf{Learning rate} & \textbf{Layers} & \textbf{Channels} & \textbf{Kernel Size} \\
+\midrule
+MNIST2 & 64 & $10^{-3}$ & 5 & 16 & 5 \\
+CIFAR2 & 64 & $10^{-4}$ & 4 & 32 & 5 \\
+Fashion & 64 & $10^{-3}$ & 4 & 16 & 3 \\
+\bottomrule
+\end{tabular}
+\begin{tabular}{lccccc}
+\toprule
+\multicolumn{5}{c}{\textbf{CIRC}} \\
+\textbf{Dataset} & \textbf{Batch size} & \textbf{Learning rate} & \textbf{Circuit} & \textbf{Layers} \\
+\midrule
+SST2 & 256 & $10^{-3}$ & \texttt{All-to-all} & 8 \\
+AG News & 128 & $10^{-3}$ & \texttt{Baseline} & 16 \\
+IMDb & 128 & $10^{-3}$ & \texttt{All-to-all} & 16 \\
+MNIST2 & 128 & $10^{-3}$ & \texttt{Baseline} & 8 \\
+CIFAR2 & 64 & $10^{-3}$ & \texttt{Baseline} & 8 \\
+Fashion & 256 & $10^{-3}$ & \texttt{Ring} & 32 \\
+\bottomrule
+\end{tabular}
+\caption{Best hyperparameters across all baseline models and tasks}
+\label{tab:hyp-baseline}
+\end{table*}
+\begin{table*}
+\centering
+\begin{tabular}{lccccc}
+\toprule
+\multicolumn{5}{c}{\textbf{HAM}} \\
+\textbf{Dataset} & \textbf{Batch size} & \textbf{Learning rate} & \textbf{Circuit} & \textbf{Layers} \\
+\midrule
+SST2 & 128 & $10^{-3}$ & \texttt{Ring} & 8 \\
+IMDb & 256 & $10^{-3}$ & \texttt{All-to-all} & 32 \\
+MNIST2 & 256 & $10^{-2}$ & \texttt{Baseline} & 32 \\
+CIFAR2 & 64 & $10^{-3}$ & \texttt{Ring} & 8 \\
+\bottomrule
+\end{tabular}
+\begin{tabular}{lccccc}
+\toprule
+\multicolumn{5}{c}{\textbf{PEFF}} \\
+\textbf{Dataset} & \textbf{Batch size} & \textbf{Learning rate} & \textbf{Circuit} & \textbf{Layers} \\
+\midrule
+SST2 & 64 & $10^{-2}$ & \texttt{All-to-all} & 8 \\
+IMDb & 64 & $10^{-2}$ & \texttt{All-to-all} & 8 \\
+MNIST2 & 64 & $10^{-3}$ & \texttt{All-to-all} & 8 \\
+CIFAR2 & 256 & $10^{-2}$ & \texttt{Baseline} & 16 \\
+\bottomrule
+\end{tabular}
+\begin{tabular}{lcccccc}
+\toprule
+\multicolumn{6}{c}{\textbf{SIM}} \\
+\textbf{Dataset} & \textbf{Batch size} & \textbf{Learning rate} & \textbf{Circuit} & \textbf{Layers} & \textbf{\# Pauli strings} \\
+\midrule
+SST2 & 256 & $10^{-3}$ & \texttt{Ring} & 32 & 1000 \\
+IMDb & 256 & $10^{-2}$ & \texttt{All-to-all} & 16 & 1000 \\
+AG News & 128 & $10^{-3}$ & \texttt{All-to-all} & 16 & 1000 \\
+MNIST2 & 256 & $10^{-2}$ & \texttt{Ring} & 32 & 1000 \\
+CIFAR2 & 64 & $10^{-3}$ & \texttt{All-to-all} & 32 & 1000 \\
+Fashion & 256 & $10^{-2}$ & \texttt{All-to-all} & 8 & 1000 \\
+\bottomrule
+\end{tabular}
+\caption{Best hyperparameters across all Hamiltonian models and tasks}
+\label{tab:hyp-ham}
+\end{table*}
+
+
+\end{document}

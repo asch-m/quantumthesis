@@ -69,6 +69,7 @@
 \usepackage[T1]{fontenc}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{bbm}
 \usepackage{amsthm}
 \usepackage{mathtools}
 \usepackage{hyperref}
@@ -94,7 +95,34 @@
 
 
 \usepackage{tikz}
+\usetikzlibrary{quantikz2}
 \usepackage{lipsum}
+
+% algorithms
+\usepackage{acronym}
+\usepackage{algorithm}
+\usepackage[noend]{algorithmic}
+\renewcommand\algorithmicindent{1.0em}
+\newcommand{\vbt}[1]{{\ttfamily #1}} % accept and reject
+
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+\newcommand*{\ditto}{---\texttt{"}---}
+
+\DeclareMathOperator{\CPTP}{CPTP}
+\DeclareMathOperator{\DM}{\mathcal{D}} % density matrices/states
+% specific math
+\DeclareMathOperator{\Stab}{Stab}
+\DeclareMathOperator{\spann}{span}
+\DeclareMathOperator{\diag}{diag}
+\DeclareMathOperator{\supp}{supp}
+\DeclareMathOperator{\cyc}{cyc}
+\DeclareMathOperator{\LandauO}{\mathcal{O}} % Landau big-O notation
+\DeclareMathOperator{\Landauo}{\mathrm{o}} % Landau small-O notation
+\DeclareMathSymbol{\mhyphen}{\mathord}{AMSa}{"39}
+\renewcommand{\AA}{\mathrm{A}}
+
+%\usepackage{titlepic}
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{corollary}{Corollary}
@@ -103,6 +131,15 @@
 \newtheorem{proposition}{Proposition}
 \newtheorem{folklore}{Folklore}
 \newtheorem{exampl}{Example}
+
+\newcommand{\XX}{\mathrm{X}}
+\newcommand{\argdot}{\,\cdot\,}
+\newcommand{\bigO}{\mathcal{O}}
+
+
+% Custom formatting for a specific author
+
+
 %----------------Commenting------------------------------
 \definecolor{jan}{rgb}{.8,.2,.2}
 \newcommand{\jan}[1]{{\color{jan} #1}}
@@ -112,9 +149,33 @@
 %%%%%%%%%%%%%%%%%%%
 % Bibliography
 %%%%%%%%%%%%%%%%%%%
-\usepackage{biblatex}
+\usepackage[maxnames=5]{biblatex}
 \addbibresource{refs.bib}% File name of BibTeX database
 
+
+
+\newcommand*{\boldname}[3]{%
+  \def\lastname{#1}%
+  \def\firstname{#2}%
+  \def\firstinit{#3}}
+\boldname{}{}{}
+
+% Patch new definitions
+\renewcommand{\mkbibnamegiven}[1]{%
+  \ifboolexpr{ ( test {\ifdefequal{\firstname}{\namepartgiven}} or test {\ifdefequal{\firstinit}{\namepartgiven}} ) and test {\ifdefequal{\lastname}{\namepartfamily}} }
+  {\mkbibbold{#1}}{#1}%
+}
+
+\renewcommand{\mkbibnamefamily}[1]{%
+  \ifboolexpr{ ( test {\ifdefequal{\firstname}{\namepartgiven}} or test {\ifdefequal{\firstinit}{\namepartgiven}} ) and test {\ifdefequal{\lastname}{\namepartfamily}} }
+  {\mkbibbold{#1}}{#1}%
+}
+
+\boldname{Schroeder}{Anna}{A.}
+
+\newtoggle{bbx:allnames}
+\togglefalse{bbx:allnames}
+\AtEveryBibitem{\iftoggle{bbx:allnames}{\defcounter{maxnames}{999}}{}}
 %%%%%%%%%%%%%%%%%%%
 % Package suggestions for tables
 %%%%%%%%%%%%%%%%%%%
@@ -122,7 +183,13 @@
 %\usepackage{tabularx}% Tables with flexible columns to achieve fixed width
 %\usepackage{longtable}% Tables across multiple pages
 %\usepackage{xltabular}% Tables with fixed width spanning multiple pages
-%\usepackage{booktabs}% Improved layout for horizontal rules in tables
+\usepackage{booktabs}% Improved layout for horizontal rules in tables
+\usepackage{ltablex}
+\usepackage{xcolor}
+\usepackage{colortbl}
+\usepackage{changepage}
+
+\newcolumntype{C}{>{$}c<{$}}
 
 %%%%%%%%%%%%%%%%%%%
 % Package suggestions math
@@ -135,6 +202,8 @@
 \graphicspath{{images/}}
 \usepackage{acronym}
 \usepackage{subfiles}
+
+\newcommand{\Pcite}[1]{P#1}
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 % custom definitions
@@ -151,6 +220,7 @@
 \reviewer{Reviewer 1 \and Reviewer 2 \and …}
 % For further customization
 %\reviewer*[Supervisor, Reviewer]{Supervisor 1 \and Reviewer 2}
+%\titlepic{\includegraphics[width=0.2\textwidth]{images/automata/2dsol.pdf}}
 
 \publishers{Darmstadt, Technische Universität Darmstadt}
 % For location or publisher. It is predefined as “Darmstadt, Technische Universität Darmstadt” as required by the library.
@@ -173,7 +243,6 @@
 \begin{document}
 
 \frontmatter
-
 \maketitle
 
 
@@ -187,6 +256,15 @@
 	Weitere Zusammenfassung in einer anderen Sprache (hier Deutsch), sofern benötigt.
 \end{abstract}
 
+\begin{refsection}[mypubs.bib]
+    \toggletrue{bbx:allnames}
+    \nocite{*}
+    \setcounter{enumiv}{0} % Reset numbering
+    \newrefcontext[labelprefix=P]  
+    \printbibliography[keyword=myPapers,title={List of Publications}, resetnumbers=true]
+    \togglefalse{bbx:allnames}
+\end{refsection}
+
 \tableofcontents
 % Additional lists like \listoffigures or acronyms might be added here
 
@@ -196,30 +274,25 @@
 \chapter{Introduction}
 \subfile{sections/introduction}
 
-\chapter{Theoretical background}
-\chapter{NISQ}
+\chapter{Deterministic measurement-based variational quantum algorithm}
 
 \subfile{sections/mbvqe}
 
-\section{Applications of VQE}
-\subsection{Chemistry}
-\subsubsection{Quantum-enhanced AFQMC}
-\subsection{NLP}
+\subfile{sections/chemistry}
 
-\chapter{Early-Fault tolerant QC}
-\section{What is early-fault tolerant QC}
-\section{Randomized methods for depth and sample trade-off}
-\section{Benchmarking on chemical test systems}
+\subfile{sections/qnlp}
+
 
 \chapter{Benchmarking Quantum Computer with Automata Advantage}
 \subfile{sections/automata}
-\section{Automata theory and promise problems}
-\section{State succinctness of finite promise problems}
-\subsection{Certification of Quantum Computing with promise problems}
 
 \appendix
+\chapter{Appendix}
+\subfile{sections/appendix}
+
 % Include the acronym file
-\subfile{acronyms}
+\chapter{Acronyms}
+\input{acronyms}
 
 \printbibliography
 

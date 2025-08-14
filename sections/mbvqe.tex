@@ -1,7 +1,7 @@
 \documentclass[../main.tex]{subfiles}
 \graphicspath{{\subfix{../images}}}
-\begin{document}
 
+\begin{document}
 %\title{A Constant-Depth and Hardware-efficient Entangler Ansatz for VQE
 %using Deterministic Measurement-based QC}
 
@@ -11,37 +11,20 @@
 
 
 \section{Introduction}
-The notion of quantum advantage is a highly intriguing application of quantum mechanics. Although it has been successfully showcased in computing problems tailored to a particular hardware~\cite{arute2019quantum,zhong2020quantum,bravyi2018quantum}, attaining computational speedup for problems with practical applications remains an important challenge. On the one hand, we already have Shor's algorithm~\cite{shor1994algorithms} and concepts from error-correction~\cite{campbell2017roads} to solve the factoring problem more efficiently than on any classical supercomputers, but such fault-tolerant schemes have stringent and potentially prohibitive requirements. On the other hand,  quantum devices available today are noisy, have a limited number of qubits, and can only operate short quantum circuits on which we can endeavor to solve practical problems. Therefore, the greatest challenge for the foreseeable future is figuring out how to utilize noisy and intermediate-scale quantum (NISQ) hardware.   
+The notion of quantum advantage is a highly intriguing application of quantum mechanics. Although it has been successfully showcased in computing problems tailored to a particular hardware~\cite{arute2019quantum,zhong2020quantum,bravyi2018quantum}, attaining computational speedup for problems with practical applications remains an important challenge. On the one hand, we already have Shor's algorithm~\cite{shor1994algorithms} and concepts from error-correction~\cite{campbell2017roads} to solve the factoring problem more efficiently than on any classical supercomputer, but such fault-tolerant schemes have stringent and potentially prohibitive requirements. On the other hand,  quantum devices available today are noisy, have a limited number of qubits, and can only operate short quantum circuits on which we can endeavor to solve practical problems. Therefore, the greatest challenge for the foreseeable future is figuring out how to utilize noisy and intermediate-scale quantum (NISQ) hardware.   
 
 Hybrid quantum-classical algorithms and specifically the variational methods, which embed the
 problems into parameterized short-depth quantum circuits and employ
 the classical optimization routines to find the quantum
 circuits that best solve the problem at hand, have attracted significant interest~\cite{moll2018quantum,mcclean2016theory,preskill2018quantum,peruzzo2014variational}. They address the problem of estimating the ground state energy of a quantum many-body Hamiltonian and have applications in quantum chemistry~\cite{tilly2022variational,peruzzo2014variational,amsler2023quantum}, high-energy physics~\cite{banuls2020simulating,kokail2019self,atas20212}, materials science~\cite{bauer2016hybrid}, and classical
-optimization~\cite{bravo2019variational,borle2021quantum}. Alongside the success, this approach suffers from a few challenges: in general, 
-training variational quantum algorithms is NP-hard~\cite{bittel2021training} and the error-mitigation might require a superpolynomial number of samples even for logarithmically shallow circuits, threatening any possible quantum advantage~\cite{quek2022exponentially}. Even though a few methods have been proposed to ease the former problem~\cite{bittel2022fast,zhou2020quantum,grimsley2019adaptive,grimsley2023adaptive,wierichs2020avoiding}, the latter looks more terminal. For significant classes of local Hamiltonians, any circuit aiming to prepare the ground state must have at least logarithmic depth~\cite{de2023limitations,bravyi2020obstacles,eldar2017local}, which poses the trade-off, one either resorts to inadequate approximation of the ground state, or the noise takes over the computation. In general, optimizing the depth of variational quantum algorithms is strongly QCMA-hard~\cite{bittel2022optimizing}. 
+optimization~\cite{bravo2019variational,borle2021quantum}. Alongside the success, this approach suffers from a few challenges: in general, training variational quantum algorithms is NP-hard~\cite{bittel2021training}, and the error-mitigation might require a superpolynomial number of samples even for logarithmically shallow circuits, threatening any possible quantum advantage~\cite{quek2022exponentially}. Although a few methods have been proposed to alleviate the former problem~\cite{bittel2022fast,zhou2020quantum,grimsley2019adaptive,grimsley2023adaptive,wierichs2020avoiding}, the latter appears more terminal. For significant classes of local Hamiltonians, any circuit aiming to prepare the ground state must have at least logarithmic depth~\cite{de2023limitations,bravyi2020obstacles,eldar2017local}, which poses the trade-off, one either resorts to inadequate approximation of the ground state, or the noise takes over the computation. In general, optimizing the depth of variational quantum algorithms is strongly QCMA-hard~\cite{bittel2022optimizing}. 
 
-Here, we tackle the second problem. We propose a hardware-efficient protocol that borrows tools from measurement-based quantum computation~\cite{raussendorf2003measurement,briegel2009measurement}, enjoys extremely shallow circuits~\cite{broadbent2007parallelizing}, and is deterministic in measurement outcomes. It is well known that unlike dynamical languages, such as steps in the Turing machine or gates in the quantum circuit, in the measurement-based model, computation is performed just with local measurements on a many-body entangled state. While the circuit model of quantum computation defines its logical depth or computational time in terms of temporal gate sequences, MBQC allows a different temporal ordering and parallelization of universal logical gates. In this scheme, it is enough to achieve universality by analyzing the correlations that exist in many-body quantum states and, thus, is a very different, uniquely quantum way of thinking from all the dynamical computational models. Here, we study the possible advantages of this model of computation in variational algorithms. 
+Here, we tackle the second problem. We propose a hardware-efficient protocol that leverages tools from measurement-based quantum computation~\cite{raussendorf2003measurement,briegel2009measurement}, features extremely shallow circuits~\cite{broadbent2007parallelizing}, and ensures deterministic measurement outcomes. It is well known that, unlike dynamical languages, such as steps in a Turing machine or gates in a quantum circuit, computation in the measurement-based model is performed solely with local measurements on a many-body entangled state. While the circuit model of quantum computation defines its logical depth or computational time in terms of temporal gate sequences, MBQC allows a different temporal ordering and parallelization of universal logical gates. In this scheme, it is enough to achieve universality by analyzing the correlations that exist in many-body quantum states, and, thus, it is a very different, uniquely quantum way of thinking from all the dynamical computational models. Here, we study the possible advantages of this model of computation in variational algorithms. 
 
-Several variants of measurement-based variational quantum eigensolvers (MBVQE) have been recently proposed~\cite{ferguson2021measurement, proietti2022native, qin2023applicability,chan2023hybrid, marqversen2023applications, majumder2023variational,huang2022near} (see also Appendix~\ref{app:overview} for an overview of previous works). However, they are either of probabilistic nature~\cite{ferguson2021measurement}, which causes exponential overhead or are not tailored to the current hardware capabilities requiring a high degree of qubit connectivity~\cite{chan2023hybrid, qin2023applicability}.  Here, we propose a general MBVQE scheme relying on the notion of quantum information flow defined for the one-way model to guarantee determinism independent of each measurement outcome~\cite{browne2007generalized,danos2006determinism}. Determinism is crucial to ensure that the variational steps in the classical training part converge even during the perfect noiseless simulations. It becomes even more pressing in the noisy regime when we have to incorporate current error-mitigation methods. From the deterministic models, we choose the specific ansatz architectures that are hardware efficient, and for two different examples, we study the trade-off between the size of the MB resource state translating into the number of parameters and the effectiveness of approximating the ground state. As a testbed, we run simulations for the Schwinger model and the $XY$-model and implement resource-conscious versions of our MBVQE ansatz of a four-qubit $XY$-Hamiltonian on an IBM quantum computer. We further study the efficacy of resource-state preparation on the heavy-hex-connected IBM quantum machines.
+Several variants of measurement-based variational quantum eigensolvers (MBVQE) have been recently proposed~\cite{ferguson2021measurement, proietti2022native, qin2023applicability,chan2023hybrid, marqversen2023applications, majumder2023variational,huang2022near} (see also Appendix~\ref{app:overview} for an overview of previous works). However, they are either of probabilistic nature~\cite{ferguson2021measurement}, which causes exponential overhead, or are not tailored to the current hardware capabilities, requiring a high degree of qubit connectivity~\cite{chan2023hybrid, qin2023applicability}.  Here, we propose a general MBVQE scheme relying on the notion of quantum information flow defined for the one-way model to guarantee determinism independent of each measurement outcome~\cite{browne2007generalized,danos2006determinism}. Determinism is crucial to ensure that the variational steps in the classical training part converge, even in perfect, noiseless simulations. It becomes even more pressing in the noisy regime when we have to incorporate current error-mitigation methods. From the deterministic models, we choose the specific ansatz architectures that are hardware efficient, and for two different examples, we study the trade-off between the size of the MB resource state, translating into the number of parameters, and the effectiveness of approximating the ground state. As a testbed, we run simulations for the Schwinger model and the $XY$-model and implement resource-conscious versions of our MBVQE ansatz of a four-qubit $XY$-Hamiltonian on an IBM quantum computer. We further study the efficacy of resource-state preparation on the heavy-hex-connected IBM quantum machines.
 
 \section{Preliminaries}
-\subsection{Variational Quantum Eigensolver}
-The Variational Quantum Eigensolver (VQE) is a quantum-classical hybrid algorithm that approximates the lowest eigenvalue and its corresponding eigenvector of a given hermitian operator, typically the Hamiltonian of the investigated quantum system~\cite{peruzzo2014variational}. %, which will be the main subject of this section.  For a more in-depth introduction to VQAs, we recommend \cite{cerezo2021variational}, which serves as the main source of inspiration of the following paragraph.
-The basic idea of VQE is to generate quantum states using a parametrized quantum circuit, the so-called ansatz, and classically optimize the parameters~$\bm{\theta}$ such that the generated state~$\ket{\psi(\bm{\theta})}$ minimizes the cost function~$C(\bm{\theta})$, which is the expectation value of the Hamiltonian~$H$,
-\begin{equation}
-    C(\bm\theta) := \expval{H}{\psi{(\bm{\theta})}}\geq E_{gs} \;,
-\end{equation} where $E_{gs}$ is the exact groundstate energy. 
-Gradients of $\bm{\theta}$ can be efficiently measured directly from the quantum device using the parameter shift rule~\cite{mitarai2018quantum,schuld2018evaluating}, making them accessible for gradient-based optimizers. Various quantum ans\"atze, such as the problem-agnostic hardware-efficient ansatz~\cite{kandala2017hardware}, annealer-inspired QAOA~\cite{farhi2014a}, or the adaptively growing ADAPT-VQE~\cite{grimsley2019adaptive} have been proposed and extensively explored. The quantum chemistry community, in particular, has contributed numerous problem-inspired ans\"atze~\cite{anselmetti2021local}, many derived from the extensive literature on classical variational methods \cite{huggins2019a,romero2018strategies}.
-Although there are known roadblocks to the productive use of VQE, such as the high counts of associated quantum measurements~\cite{gonthier2020measurements} or vanishing gradients (referred to as Barren plateaus)~\cite{mcclean2018barren}, VQEs remain the primary workhorse of quantum algorithms in the NISQ era.
 
-%There are a few proposals for the classical optimization of the cost function: \mari{Give the options as below, but which one do you choose and why?}
-
-%Stochastic gradient descent methods and resource frugal adaptions have been proposed \cite{kingma2014adam} \cite{kubler2020adaptive}. Another method is the quantum natural gradient descent method, which takes the information geometry of quantum states into account \cite{stokes2020quantum}. There are also non-gradient methods, such as the simultaneous perturbation stochastic approximation (SPSA) method \cite{spall1992multivariate}. A popular choice, however, is COBYLA, Constrained Optimization BY Linear Approximation, a well-established optimizer operating gradient-free \cite{powell1994direct}.
-
-% Since the optimization process is cast to classical hardware, VQEs enjoy reduced circuit complexity in terms of depth, which makes it a promising candidate for quantum practicality in the NISQ era \cite{preskill2018quantum}. 
-%  On the other hand, there are known fundamental limitations regarding its trainability. It has been reported that the gradient of the cost function vanishes exponentially with the number of qubits \cite{mcclean2018barren}, which renders the training of circuits exceeding the size of toy problems unfeasible.
-
-% Nonetheless, VQEs offer a highly versatile toolbox that can be utilized today - with the hope of finding practical usage, e.g., in subroutines of complex algorithms such as AFQMC \cite{huggins2022unbiasing}. 
 \subsection{Measurement-based quantum computing}\label{sec:mbqc}
 
 In MBQC, computation is carried out on a highly entangled resource state by local measurements only. %As a result, MBQC offers a trade-off in hardware requirements, specifically between qubit count and gate depth. 
@@ -54,7 +37,7 @@ Graph states can equivalently be defined by means of the stabilizer formalism. A
 \begin{equation}
     \ket{G} = X_i \bigotimes_{j \in \mathcal{N}(i)} Z_j \ket{G}, \quad \forall i\in V.
 \end{equation}
-Here each stabilizer operator is written for a vertex $i\in V$ and consists of the Pauli-$X$~gate on a vertex $i$ and Pauli-$Z$~gates acting on the graph-neighbors of $i$, denoted by the set $\mathcal{N}(i)$.
+Here, each stabilizer operator is written for a vertex $i\in V$ and consists of the Pauli-$X$~gate on a vertex $i$ and Pauli-$Z$~gates acting on the graph-neighbors of $i$, denoted by the set $\mathcal{N}(i)$.
 The most standard resource state for MBQC is a so-called cluster state; its associated graph is a regular two-dimensional grid. To harness universal quantum computation, the cluster resource state is paired with measurements in Pauli bases and particular measurement bases in $X-Y$ plane, parameterized by an angle $\theta$,  $\ket{\theta_{\pm}}:=\frac{\ket{0}\pm e^{i\theta} \ket{1}}{\sqrt{2}}$~\cite{raussendorf2003measurement}, which we denote sometimes as $R(\theta)$.
 \begin{figure}
     \centering
@@ -182,7 +165,7 @@ While this MBVQE ansatz shows a favorable expressivity with respect to specific 
     \label{fig:nodewise_circuit}
 \end{figure}
 \subsection{Deterministic MBVQE with node-wise decoration}
-In the context of MBVQE, a stringent treatment of random byproducts is essential when starting from a highly entangled graph state as a resource since the number of non-equalizable measurement outcomes grows exponentially with the number of flow-infringing qubits. This, naturally, makes postselection impractical with realistic problem sizes. To address this, we propose a decoration scheme that guarantees a flow in all cases.
+In the context of MBVQE, a stringent treatment of random byproducts is essential when starting from a highly entangled graph state as a resource, since the number of non-equalizable measurement outcomes grows exponentially with the number of flow-infringing qubits. This, naturally, makes postselection impractical with realistic problem sizes. To address this, we propose a decoration scheme that guarantees a flow in all cases.
 
 To this end, we take a ``copy'' of the ansatz graph $G_0=(V_0,E_0)$, and call it the first decoration layer graph $G_1=(V_1, E_1)$. Every vertex $v^{(1)}_i\in G_1$ is then connected to a vertex $v^{(0)}_i\in G_0$. In an iterative way, we can then define the $l$-th decoration layer, where we add the $l$-th copy of $G_0$ and connect its vertices with the ones in the layer $(l-1)$. 
 See Fig.~\ref{fig:nodewise} for a simple $3$-qubit example with $3$ decoration layers. Similar measurement patterns have been considered in Refs.~\cite{marqversen2023applications,majumder2023variational}. This approach allows the correction of any $Z$ byproducts by leveraging the stabilizer of the neighboring qubit in the above layer, starting the measurements from the bottom layer. We call such a decoration scheme \textit{node-wise decoration}. This decoration scheme differs from the edge-wise one in resource theoretic requirements: the edge-wise scheme maintains a planar graph, while the node-wise scheme requires an additional dimension to the ansatz graph. In Fig.~\ref{fig:nodewise}, our ansatz graph is linear, demanding the preparation of a regular 2D cluster state as the resource state. For a 2D ansatz graph, a three-dimensional cluster state becomes necessary, which can be used as a resource for fault-tolerant MBQC \cite{larsen2021a,raussendorf2005a,brown2018universal}. 
@@ -274,7 +257,7 @@ Hardware experiments were carried out on the IBM platform, successfully executin
 Another challenge lies in the effective preparation of the resource state at the start. To address these concerns, we executed experiments using a measurement pattern that can be implemented on a heavy-hex lattice without requiring SWAP gates. Furthermore, this pattern is designed to be shallow regarding decoration layers and contains only up to one adaptive measurement.
 
 
-In order to accommodate the current hardware capacities, we propose a \textit{tree}-ansatz in Fig.~\ref{fig:4_qubit_ansatz}. Following the general correction scheme of the measurement byproducts in Section~\ref{sec:mbqc}, the only adaptive measurement we need to perform is that caused by a measurement outcome on the ``parent-qubit'' measured in $R(\theta_1)$ basis. We found that using more adaptive measurements leads to significantly higher degree of noise in all our use cases. Measurement outcomes of the remaining qubits can be treated by a classical post-processing of the measurement results on the output qubits.
+In order to accommodate the current hardware capacities, we propose a \textit{tree}-ansatz in Fig.~\ref{fig:4_qubit_ansatz}. Following the general correction scheme of the measurement byproducts in Section~\ref{sec:mbqc}, the only adaptive measurement we need to perform is that caused by a measurement outcome on the ``parent-qubit'' measured in $R(\theta_1)$ basis. We found that using more adaptive measurements leads to a significantly higher degree of noise in all our use cases. Measurement outcomes of the remaining qubits can be treated by a classical post-processing of the measurement results on the output qubits.
 
 
 
@@ -321,7 +304,7 @@ We test the tree-ansatz for the periodic $4$-qubit $XY$-model,
     &=-\frac{1+g}{2} (X_1X_2+X_2X_3+X_3X_4+X_4X_1)\nonumber\\
     &\quad+\frac{1-g}{2} (Y_1Y_2+Y_2Y_3+Y_3Y_4+Y_4Y_1).\label{eq:4_qubit_ham}
 \end{align}
-Note that, we introduce a minus sign in front of $H_X$ compared to the conventional $XY$-Hamiltonian.
+Note that we introduce a minus sign in front of $H_X$ compared to the conventional $XY$-Hamiltonian.
 However, our Hamiltonian is equivalent up to local unitaries to the conventional $XY$-Hamiltonian, since
 $ Y_2 Y_4 H_X Y_2 Y_4 = -H_X$ and $Y_2 Y_4 H_Y Y_2 Y_4 =H_Y$.
 
@@ -332,12 +315,12 @@ We choose the $H_{XY}$ Hamiltonian, as for any $g$, it is straightforward to der
     -&\frac{1-g}{2}\left(\sin\theta_1(\sin\theta_2 +\sin \theta_3)\right),
     \end{split}
 \end{align}
-and minimize it for $\theta_2=\theta_3=\frac{\pi}{2}$. To say it otherwise, with our choice of the ansatz and the Hamiltonian, the measurements on the mid-layer qubits are always fixed in the Pauli-$Y$ basis. As a result, we are able to test dynamic circuits only varying one parameter, $\theta_1$ without demanding implementation of gradient optimization for other bases, which could possibly lead to additional error accumulation. In our hardware experiments, we chose to adapt the measurement basis of $\theta_2=\pm\frac{\pi}{2}$ depending on the outcome of the first measurement. 
+and minimize it for $\theta_2=\theta_3=\frac{\pi}{2}$. To say it otherwise, with our choice of the ansatz and the Hamiltonian, the measurements on the mid-layer qubits are always fixed in the Pauli-$Y$ basis. As a result, we are able to test dynamic circuits only varying one parameter, $\theta_1$, without demanding implementation of gradient optimization for other bases, which could possibly lead to additional error accumulation. In our hardware experiments, we chose to adapt the measurement basis of $\theta_2=\pm\frac{\pi}{2}$ depending on the outcome of the first measurement. 
 
 
 
 As an alternative approach to compare with, we use a postselection strategy, in which we only select those events for which the first qubit is projected on the $\ket{\theta_+}_1$. Then,
-there is no need for any corrections in the second layer. Since for our choice of the ansatz and the Hamiltonian, we only need to implement Pauli-$Y$ measurements on the middle layer, we could effectively achieve the postselection with the classical post-processing, reducing the number of circuit runs. Furthermore, we use a combination of randomized compiling~\cite{wallman2015noise}, dynamical decoupling~\cite{PhysRevA.58.2733} and  Clifford data regression (CDR)~\cite{Czarnik2021errormitigation} (c.f.~Appendix~\ref{appendix:cdr} for more details) as error mitigation strategies.
+there is no need for any corrections in the second layer. Since for our choice of the ansatz and the Hamiltonian, we only need to implement Pauli-$Y$ measurements on the middle layer, we could effectively achieve the postselection with the classical post-processing, reducing the number of circuit runs. Furthermore, we use a combination of randomized compiling~\cite{wallman2015noise}, dynamical decoupling~\cite{PhysRevA.58.2733}, and  Clifford data regression (CDR)~\cite{Czarnik2021errormitigation} (c.f.~Appendix~\ref{appendix:cdr} for more details) as error mitigation strategies.
 We ran our experiments on \texttt{ibm\_algiers} ($27$ qubits) using a total budget of $100\; 000$ shots to estimate each expectation value.
 
 
@@ -407,7 +390,7 @@ In this work, we focus on one of the most popular hybrid quantum-classical algor
 
 As a next step, we propose a new MBVQE protocol featuring a resource state that respects determinism and resembles the widely used problem-agnostic hardware-efficient VQE ansatz. Moreover, our ansatz can be prepared ``hardware efficiently'' on NISQ devices, such that it reduces the circuit-depth requirements by respecting the native qubit connectivity of hardware and avoids additional SWAP operations. We evaluate our approach using ideal simulations on the Schwinger Hamiltonian and $XY$-model of an increasing number of qubits. As a result, we obtain MBQC patterns that implement an instance of the entangler ansatz that gets more expressive by increasing the number of decoration layers in the proposed resource state. Additionally, we use IBM hardware, which allows for the mid-circuit measurements to test our results. 
 Here, we propose a tree-shaped decoration scheme for the $4$-qubit $XY$-Model with a single adaptive measurement step and compare its performance in the case when determinism is ensured by post-selection (so no mid-circuit measurements). 
-In this particular scenario  we find that the post-selection works significantly better, since the adaptive measurement steps induce additional hardware noise.
+In this particular scenario, we find that the post-selection works significantly better, since the adaptive measurement steps induce additional hardware noise.
 
 Finally, we propose an efficient MBQC-inspired method to prepare the resource state, specifically the cluster state, on hardware with heavy-hex connectivity, requiring just a single measurement round. We implemented this scheme on quantum computers with $27$ and $127$ qubits and observed notable improvements for larger cluster states, although direct gate-based implementation achieved higher fidelity for smaller instances.
 
@@ -445,88 +428,88 @@ The effectiveness of MB approaches ultimately depends on the accuracy of adaptiv
 \section{Overview of other previous works}~\label{app:overview}
 
 The work by Ferguson et al. \cite{ferguson2021measurement} inspired further investigations of the performance and resource requirements of other VQE instances in the MBQC framework. Proietti et al.~\cite{proietti2022native} studied an MBQC native way to implement the Quantum Approximate Optimization Algorithm (QAOA) \cite{farhi2014a}, which makes use of the fact that operations that are diagonal in the computational basis are exceptionally efficient in MBQC as ``input'' and  ``output'' qubits coincide \cite{browne2006one}. They tested the MBQC algorithm by simulating this method in the context of the k-max cut problem.
-Qin et al. \cite{qin2023applicability} showed an MBQC version of the Hamiltonian variational ansatz \cite{wecker2015progress} that makes use of efficient 2-body operators implemented in the same sense as the QAOA operator. Combined with local rotations on the input/output qubits; it is possible to generate all Pauli-rotation.
+Qin et al. \cite{qin2023applicability} showed an MBQC version of the Hamiltonian variational ansatz \cite{wecker2015progress} that makes use of efficient 2-body operators implemented in the same sense as the QAOA operator. Combined with local rotations on the input/output qubits, it is possible to generate all Pauli rotations.
 Chan et al. \cite{chan2023hybrid} included these efficient MBQC-based multi-qubit Pauli-rotations, also referred to as Pauli-gadgets, within a gate-based circuit. This work included experiments on the IBM 7-qubit machine that indicate a possible advantage of operating gate-based hardware in MBQC manner.
 Marqversen et al. \cite{marqversen2023applications} discuss and exhibit how MBQC can reduce hardware resources for applications such as VQE, demonstrate specific use cases, and introduce efficient ways to simulate MBQCs with tensor networks.
-While Majumder et al. \cite{majumder2023variational} used almost the same MBQC pattern as in our work to generate their ansatz and acknowledge the importance of byproducts in MBVQE, but, instead of correcting them, they utilize this randomness to learn probability distributions better in the context of generative modeling. A part of these works used post-selection to guarantee the convergence of variational algorithm~\cite{ferguson2021measurement, proietti2022native}, while others used different measurement bases than $R(\theta)$ and achieved determinism~\cite{chan2023hybrid, huang2022near, marqversen2023applications}. While sufficient attention was not given to determinism in the initial works of MBVQE, recent papers (including ours) discuss the problem extensively for distinct settings and applications. 
+While Majumder et al. \cite{majumder2023variational} used almost the same MBQC pattern as in our work to generate their ansatz and acknowledge the importance of byproducts in MBVQE, but instead of correcting them, they utilize this randomness to learn probability distributions better in the context of generative modeling. A part of these works used post-selection to guarantee the convergence of variational algorithm~\cite{ferguson2021measurement, proietti2022native}, while others used different measurement bases than $R(\theta)$ and achieved determinism~\cite{chan2023hybrid, huang2022near, marqversen2023applications}. While sufficient attention was not given to determinism in the initial works of MBVQE, recent papers (including ours) discuss the problem extensively for distinct settings and applications. 
 
-%\section{Measurement-based quantum computing}\label{appendix:mbqc}
+% \section{Measurement-based quantum computing}\label{appendix:mbqc}
 
-%In MBQC, computation is carried out on a pre-prepared, highly entangled resource state by local measurements only. As a result, MBQC offers a trade-off in hardware requirements, specifically between qubit count and gate depth. In its original proposal~\cite{raussendorf2003measurement}, the resource state of choice is a graph state, more specifically the cluster state, 
-%\begin{equation}
+% In MBQC, computation is carried out on a pre-prepared, highly entangled resource state by local measurements only. As a result, MBQC offers a trade-off in hardware requirements, specifically between qubit count and gate depth. In its original proposal~\cite{raussendorf2003measurement}, the resource state of choice is a graph state, more specifically the cluster state, 
+% \begin{equation}
 %    \ket{G} = \prod_{\{i,j\} \in E} CZ_{ij} \ket{+}^{\abs{V}},
-%\end{equation}
-%where this state has a direct correspondence to a graph $G = (V,E)$ with vertices $V$ and edges $E \subseteq \{ \{x,y\} \, | \, x,y \in V \, \mathrm{and} \, x \neq y \} $. Graph states have an equivalent definition using so-called stabilizers
-%\begin{equation}
+% \end{equation}
+% where this state has a direct correspondence to a graph $G = (V,E)$ with vertices $V$ and edges $E \subseteq \{ \{x,y\} \, | \, x,y \in V \, \mathrm{and} \, x \neq y \} $. Graph states have an equivalent definition using so-called stabilizers
+% \begin{equation}
 %   \ket{G} = X_i \otimes_{j \in N_A (i)} Z_j \ket{G}.
-%\end{equation} Paired with local measurements on the $XY$-basis $R(\theta) = \frac{\ket{0} \pm e^{i\theta}\ket{1}}{2}$, it has been shown that these two ingredients suffice to perform \textit{universal} and \textit{deterministic} quantum computing~\cite{raussendorf2003measurement}.
+% \end{equation} Paired with local measurements on the $XY$-basis $R(\theta) = \frac{\ket{0} \pm e^{i\theta}\ket{1}}{2}$, it has been shown that these two ingredients suffice to perform \textit{universal} and \textit{deterministic} quantum computing~\cite{raussendorf2003measurement}.
 
-%Let's review some essential results from Raussendorf's seminal work, which came together with a graphical rule to express the MBQC scheme neatly. Universality was shown by devising measurement patterns implementing an arbitrary single-qubit rotation and a CNOT gate (see Fig.~\ref{fig:basicMBQC}). Each piece can be computed deterministically and concatenated to realize any circuit.
+% Let's review some essential results from Raussendorf's seminal work, which came together with a graphical rule to express the MBQC scheme neatly. Universality was shown by devising measurement patterns implementing an arbitrary single-qubit rotation and a CNOT gate (see Fig.~\ref{fig:basicMBQC}). Each piece can be computed deterministically and concatenated to realize any circuit.
 
-%\begin{figure}
-%    \centering
-%    \includegraphics[width=0.7\linewidth]{mbvqe/Mnf.pdf}{
-%    \phantomsubcaption\label{fig:eulerrot}
-%    \phantomsubcaption\label{fig:cnot}
-%    \phantomsubcaption\label{fig:noflow}
-%    }
-%    \caption{\textbf{A}: A 5-qubit measurement pattern that implements an arbitrary single-qubit rotation $U_x(\xi) U_z (\eta) U_x (\zeta)$, and \textbf{B}: a 4-qubit pattern that performs a CNOT gate. Both patterns have a distinctive measurement flow and can be executed deterministically.
-%    \textbf{C}: The edge-wise decoration scheme by Ferguson et al. \cite{ferguson2021measurement} can result in non-correctable patterns, as shown here, not meeting the flow condition. In such cases, the standard MBQC correction scheme introduces a phase kickback on a different qubit, making it impossible to relate the erroneous post-measurement state to the correct one. Consequently, to achieve determinism, these samples must be discarded, leading to exponential sampling overhead. The color coding is the same as in Fig.~\ref{fig:detansatz} }
-%    \label{fig:basicMBQC}
-%\end{figure}
- %Arbitrary single-qubit rotations $U_\mathrm{Rot} (\xi,\eta,\zeta) \ket{\psi_{in}}= U_x(\xi) U_z (\eta) U_x (\zeta)\ket{\psi_{in}}$ can be implemented starting from a $5$-qubit graph sate arranged as one-dimensional open chain
-%\begin{equation}
+% % \begin{figure}
+% %    \centering
+% %    \includegraphics[width=0.7\linewidth]{mbvqe/Mnf.pdf}{
+% %    \phantomsubcaption\label{fig:eulerrot}
+% %    \phantomsubcaption\label{fig:cnot}
+% %    \phantomsubcaption\label{fig:noflow}
+% %    }
+% %    \caption{\textbf{A}: A 5-qubit measurement pattern that implements an arbitrary single-qubit rotation $U_x(\xi) U_z (\eta) U_x (\zeta)$, and \textbf{B}: a 4-qubit pattern that performs a CNOT gate. Both patterns have a distinctive measurement flow and can be executed deterministically.
+% %    \textbf{C}: The edge-wise decoration scheme by Ferguson et al. \cite{ferguson2021measurement} can result in non-correctable patterns, as shown here, not meeting the flow condition. In such cases, the standard MBQC correction scheme introduces a phase kickback on a different qubit, making it impossible to relate the erroneous post-measurement state to the correct one. Consequently, to achieve determinism, these samples must be discarded, leading to exponential sampling overhead. The color coding is the same as in Fig.~\ref{fig:detansatz} }
+% %    \label{fig:basicMBQC}
+% % \end{figure}
+%  Arbitrary single-qubit rotations $U_\mathrm{Rot} (\xi,\eta,\zeta) \ket{\psi_{in}}= U_x(\xi) U_z (\eta) U_x (\zeta)\ket{\psi_{in}}$ can be implemented starting from a $5$-qubit graph sate arranged as one-dimensional open chain
+% \begin{equation}
 %    \ket{G_5} = \prod_{i=0}^{3} \mathrm{CZ}_{\{i,i+1\}} \ket{\psi_{in}} \otimes_{i = 1}^{4} \ket{+},
-%\end{equation}  
-%teleporting the input qubit to the second qubit through an $X$-basis measurement $R(0)$ and successive measurements of the next three qubits in the rotated bases $R(\xi), R(\eta)$ and $R(\zeta)$. 
-%If we always project on the positive eigenvalues, the fifth qubit is precisely in the desired rotated state. This can be easily verified by translating the effects of the local measurement $R(\theta)$ back to the gate-based picture. 
+% \end{equation}  
+% teleporting the input qubit to the second qubit through an $X$-basis measurement $R(0)$ and successive measurements of the next three qubits in the rotated bases $R(\xi), R(\eta)$ and $R(\zeta)$. 
+% If we always project on the positive eigenvalues, the fifth qubit is precisely in the desired rotated state. This can be easily verified by translating the effects of the local measurement $R(\theta)$ back to the gate-based picture. 
 
-%For the sake of clarity, let's consider a $2$-qubit cluster state $\ket{G_2} = CZ_{1,2} \ket{ \psi_{in}}\ket{+}$, where $\ket{\psi_{in}}=\alpha\ket{0}+\beta\ket{1}$. Then, by projecting $\ket{\psi_{in}}$ onto the positive subspace of the $XY$-plane, we obtain
-%\begin{align}\label{eqn:HP}
+% For the sake of clarity, let's consider a $2$-qubit cluster state $\ket{G_2} = CZ_{1,2} \ket{ \psi_{in}}\ket{+}$, where $\ket{\psi_{in}}=\alpha\ket{0}+\beta\ket{1}$. Then, by projecting $\ket{\psi_{in}}$ onto the positive subspace of the $XY$-plane, we obtain
+% \begin{align}\label{eqn:HP}
 %    Proj_{R(\theta),1}  CZ \ket{\psi_{in}} \otimes  \ket{+} 
 %   & = 
 %    \frac{(\bra{0} + e^{i\theta}\bra{1}) (\alpha\ket{0}\ket{+}+\beta\ket{1}\ket{-})}{2} \\ \nonumber
 %    & = \frac{\alpha\ket{+} + \beta e^{i\theta} \ket{-}}{2} \\  \nonumber
 %    & = H P_{\theta}\ket{\psi_{in}} ,  
-%\end{align}
-%where $H$ is the Hadamard gate and $P_\theta$ the phase gate, equivalent to $U_z$ up to an irrelevant global phase $e^{i\theta/2}$. From Eq.~\ref{eqn:HP}, we can also see that an $X$-basis measurement is equivalent to teleporting the state to the next qubit under the application of a Hadamard gate.
-%Following this relationship, performing the $5$-qubit measurement pattern in Fig.~\ref{fig:basicMBQC} (A1) is nothing other than 
-%\begin{equation}
+% \end{align}
+% where $H$ is the Hadamard gate and $P_\theta$ the phase gate, equivalent to $U_z$ up to an irrelevant global phase $e^{i\theta/2}$. From Eq.~\ref{eqn:HP}, we can also see that an $X$-basis measurement is equivalent to teleporting the state to the next qubit under the application of a Hadamard gate.
+% Following this relationship, performing the $5$-qubit measurement pattern in Fig.~\ref{fig:basicMBQC} (A1) is nothing other than 
+% \begin{equation}
 %    HP_\xi HP_\eta HP_\zeta H \ket{\psi_{in}} 
 %  = e^{i \frac{(\zeta + \eta + \xi)}{2}} H U_z(\xi) U_x (\eta) U_z (\zeta) H \ket{\psi_{in}}.
-%\end{equation} 
-%We used the equivalence relation $H U_z H = U_x$ in the last step.
-%Up to the Hadamard gates, we have indeed simulated the effects of an Euler rotation. The Hadamard gates are not of concern as they get eliminated by the initial teleportation step, the $X$ measurement, of the next computation. 
+% \end{equation} 
+% We used the equivalence relation $H U_z H = U_x$ in the last step.
+% Up to the Hadamard gates, we have indeed simulated the effects of an Euler rotation. The Hadamard gates are not of concern as they get eliminated by the initial teleportation step, the $X$ measurement, of the next computation. 
 
-%In the original manuscript, Raussendorf et al.~designed a $15$-qubit pattern for implementing a CNOT gate \cite{raussendorf2003measurement}. 
-%A more compact pattern was proposed ~\cite{kashif2023physical} that utilizes the inherent availability of $CZ$-gates in the resource state (see Fig.~\ref{fig:basicMBQC}). Implementing a $CZ$-gate is exceptionally simple in this MBQC framework, which is accomplished by teleporting the respective states into two connected qubits. 
-%Then, we can treat, without measurement, the outputs to be the expected entangled state. From this, we can construct a CNOT-gate by sandwiching the target qubit with Hadamard gates. This is achieved by two $X$-measurements, as discussed previously.
+% In the original manuscript, Raussendorf et al.~designed a $15$-qubit pattern for implementing a CNOT gate \cite{raussendorf2003measurement}. 
+% A more compact pattern was proposed ~\cite{kashif2023physical} that utilizes the inherent availability of $CZ$-gates in the resource state (see Fig.~\ref{fig:basicMBQC}). Implementing a $CZ$-gate is exceptionally simple in this MBQC framework, which is accomplished by teleporting the respective states into two connected qubits. 
+% Then, we can treat, without measurement, the outputs to be the expected entangled state. From this, we can construct a CNOT-gate by sandwiching the target qubit with Hadamard gates. This is achieved by two $X$-measurements, as discussed previously.
 
-%The above derivations hold, however, only if we project always on the positive eigenvalue in our measurements. Yet, quantum measurements are a genuinely random process -- hence, the significance of MBQC depends on whether these probabilistic outcomes can be altered to be \textit{deterministic}. As can be surmised from the success of MBQC, its proposal combined techniques to equalize all computation branches \cite{raussendorf2003measurement}. These techniques use the stabilizers of the resource state that induce equality relations of additional $X$- and $Z$-gates, which are precisely the byproducts generated through random measurements.
+% The above derivations hold, however, only if we project always on the positive eigenvalue in our measurements. Yet, quantum measurements are a genuinely random process -- hence, the significance of MBQC depends on whether these probabilistic outcomes can be altered to be \textit{deterministic}. As can be surmised from the success of MBQC, its proposal combined techniques to equalize all computation branches \cite{raussendorf2003measurement}. These techniques use the stabilizers of the resource state that induce equality relations of additional $X$- and $Z$-gates, which are precisely the byproducts generated through random measurements.
 
-%Let's take the $5$-qubit measurement pattern (Fig.~\ref{fig:basicMBQC}) as an example again and assume that we projected the first qubit on the negative eigenstate of the measurement basis.
-%We treat the negative projector as $\bra{1} = \bra{0} X$ and commute the $X$ to the right side of the rotation operator $U(\theta)$, which becomes then a $Z$. These additional Pauli operations are commonly referred to as byproduct operators. Using the graph stabilizer, the following equality holds
-%\begin{equation}
-%\begin{aligned}
+% Let's take the $5$-qubit measurement pattern (Fig.~\ref{fig:basicMBQC}) as an example again and assume that we projected the first qubit on the negative eigenstate of the measurement basis.
+% We treat the negative projector as $\bra{1} = \bra{0} X$ and commute the $X$ to the right side of the rotation operator $U(\theta)$, which becomes then a $Z$. These additional Pauli operations are commonly referred to as byproduct operators. Using the graph stabilizer, the following equality holds
+% \begin{equation}
+% \begin{aligned}
 %        \bra{1}_1 U(\theta)_1 \ket{G_5} & = \bra{0}_1 X_1 U(\theta)_1 \ket{G_5} \\ 
 %        & = \bra{0}_1 U(\theta)_1 Z_1 \ket{G_5} \\
 %    & = \bra{0}_1 U(\theta)_1 X_2 Z_3 \ket{G_5},
 %    \label{eqn:Z-error}
-%\end{aligned}
-%\end{equation}
-%where $U(\theta) = HP_\theta$. We successfully related the \textit{wrong} measurement outcome to the \textit{correct} one by transferring the $X$ and $Z$ byproducts to the unmeasured qubits. The $Z$-byproducts of the yet unmeasured qubits can be compensated analogously to \ref{eqn:Z-error}; for the $X$-errors, we use the relation
-%\begin{equation}
+% \end{aligned}
+% \end{equation}
+% where $U(\theta) = HP_\theta$. We successfully related the \textit{wrong} measurement outcome to the \textit{correct} one by transferring the $X$ and $Z$ byproducts to the unmeasured qubits. The $Z$-byproducts of the yet unmeasured qubits can be compensated analogously to \ref{eqn:Z-error}; for the $X$-errors, we use the relation
+% \begin{equation}
 %    \bra{0} U(\theta) X = \bra{0} e^{i\theta} U(- \theta).
-%\end{equation} 
-%This means that the $X$-byproduct can be canceled by choosing the measurement basis $R(- \theta)$. 
-%As the choice of measurement basis depends on the measurement outcome of past measurements, measurements are conducted adaptively and, most importantly, introduce a temporal and causal order. 
-%This order raises a notion of \textit{flow} \cite{danos2006determinism,browne2007generalized}, which can be used to identify, whether certain measurement patterns hold enough degrees of freedom to truly correct all measurement errors that might appear during the process. If not, the pattern cannot be computed deterministically, requiring postselection with unfavoured exponential sampling cost. Byproduct operators are a feature of the measurement basis. Specific choices, such as the Pauli bases, have forgiving properties; in this case, measurements can even be conducted in parallel without adaptive corrections ~\cite{raussendorf2003measurement, anders2006fast}.
-%\begin{figure}
+% \end{equation} 
+% This means that the $X$-byproduct can be canceled by choosing the measurement basis $R(- \theta)$. 
+% As the choice of measurement basis depends on the measurement outcome of past measurements, measurements are conducted adaptively and, most importantly, introduce a temporal and causal order. 
+% This order raises a notion of \textit{flow} \cite{danos2006determinism,browne2007generalized}, which can be used to identify whether certain measurement patterns hold enough degrees of freedom to truly correct all measurement errors that might appear during the process. If not, the pattern cannot be computed deterministically, requiring postselection with unfavoured exponential sampling cost. Byproduct operators are a feature of the measurement basis. Specific choices, such as the Pauli bases, have forgiving properties; in this case, measurements can even be conducted in parallel without adaptive corrections ~\cite{raussendorf2003measurement, anders2006fast}.
+% \begin{figure}
 %    \centering
 %    \includegraphics[width=0.45\linewidth]{mbvqe/flow.pdf}
 %    \caption{Caption}
 %    \label{fig:flow}
-%\end{figure}
+% \end{figure}
 
 
 

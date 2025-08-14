@@ -1,0 +1,279 @@
+\documentclass[../main.tex]{subfiles}
+\graphicspath{{\subfix{../images/}}}
+\begin{document}
+% \textbf{Hello world!}
+% \begin{figure}[bh]
+% \centering
+% \includegraphics[width=3cm]{automata/tautomata.pdf}
+
+% \label{fig:img1}
+% \caption{Overleaf logo}
+% \end{figure}
+
+\chapter{Application of VQE II: Natural Lanugage Processing}
+
+This work represents a collaborative effort with the Ubiquitous Knowledge Processing Group at TU Darmstadt, which resulted in the publication \begin{refsection}[mypubs.bib] \DeclareFieldFormat{labelnumber}{P\ifnum#1<10 0\fi#1} \cite{tiblias2025an} \end{refsection} with Federico Tiblias as the corresponding author. The author of this thesis contributed to the conceptualization and design of the QML setup, while Federico Tiblias, in addition to conceptualization and design of the QML setup, conducted all numerical test runs and benchmarking analyses.
+
+\section{Introduction}
+
+The recent advent of artificial intelligence \cite{krizhevsky2012imagenet} and its adoption in natural language processing (NLP) through large language models (LLMs) \cite{vaswani2017attention,brown2020language} have been truly remarkable, representing what many consider the defining technological paradigm shift of this century. However, significant challenges persist \cite{kaddour2023challenges}, including the enormous computational resources that appear to follow a power law \cite{kaplan2020scaling} and consume substantial energy \cite{schwartz2019green}. Quantum computing exhibits the potential for exponential advantages in certain tasks compared to classical machines. The field of \ac{QML} \cite{biamonte2017quantum} seeks to identify such computational advantages in data-centric problems, particularly machine learning applications.
+In recent years, several success stories have emerged: rigorous proofs for complexity-theoretic advantages in QML have been established for quantum data \cite{huang2021information, huang2022quantum}, while for classical cases, studies have leveraged quantum algorithmic primitives with provable advantages, such as Shor's algorithm or the discrete logarithm problem \cite{sweke2021on, pirnay2023superpolynomial, servedio2012equivalences, liu2021a}. More general considerations of quantum-classical complexity separation have been conducted \cite{yamasaki2023advantage, gyurik2023exponential, molteni2025quantum}.
+While these developments are exciting, the classical datasets discussed in these works are often artificial and specifically tailored to prove particular theoretical statements involving quantum algorithms with circuit depth inaccessible on NISQ hardware. A practical roadmap to quantum advantage in machine learning with real-world classical data appears to be lacking, despite this representing the most impactful application. One significant roadblock is that machine learning, as practiced in classical computing, relies heavily on empirical studies involving novel model architectures being benchmarked on realistic, challenging datasets, which is a research methodology not yet feasible in quantum computing.
+
+Nevertheless, several pioneering studies have emerged for NISQ-compatible QML schemes, which are fundamentally based on variational circuits \cite{Cerezo2021} represented by a parametrized unitary operation $U(\bm{\theta})$. Similar to VQE (Sec.~\ref{sec:vqe}), but instead of solving the eigenvalue problem, the objective is to minimize a loss function: 
+\begin{equation} 
+    \min{\bm{\theta}} \frac{1}{|\bm{X}|} \sum_{x \in \bm{X}, y \in \bm{Y}} \mathcal{L}(f(x,\bm{\theta}),y) \; ,
+\end{equation} where $\bm{X}$ represents the set of training data, $\bm{Y}$ the corresponding ground-truth binary labels, and $f(x,\bm{\theta})$ the quantum computer output for given input data $x$ after measurement, typically expressed as an expectation value of some observable $O$:
+\begin{equation}
+    f(x,\bm{\theta}) = \bra{0}P(x)^\dagger U(\bm{\theta})^\dagger O U(\bm{\theta}) P(x) \ket{0} \, , 
+\end{equation} where $P(x)$ implements the data encoding, mapping classical data into the respective Hilbert space. Given the analogy to classical artificial neural networks, implementing a parametrized function trained on training data, this approach is also referred to as a \textit{quantum neural network}. Specific choices of architecture, parametrized circuit, qubit counts, observables, etc., constitute design decisions that must be investigated for the individual application.
+Given current hardware restrictions, such empirical studies can only be conducted practically on simulated hardware, which limits investigations to either small-scale toy problems irrelevant to the current state-of-the-art of machine learning, or requires extensive feature reduction that renders the test problems underwhelming. In our investigation, we focus specifically on quantum encoding of classical data, as this choice significantly impacts required hardware resources. We propose an instance of the flipped model \cite{Jerbi2024shadows}, where data is encoded not in the quantum state but rather in the classical observable. This approach enables simulation of larger systems, facilitating benchmarking against more relevant datasets commonly employed in classical machine learning research \cite{mnistdataset, xiao2017fashion, krizhevsky2012imagenet, zhang2015agnews, stanford2011imdb, socher2013recursive, wang2019superglue}.
+In the following sections, we discuss common data encoding schemes, introduce our Pauli-inspired encoding scheme together with the flipped model in the context of sentiment analysis for NLP applications, and conclude with a summary of benchmarking results and future outlook.
+
+\section{Quantum Data Encoding of classical Data}
+
+Let us review commonly practiced data encoding schemes in quantum computing. A canonical encoding is provided by \textit{basis encoding}, where an $n$-bit string $x = x_0, x_1, \dots, x_{n-1}$ is represented via an $n$-qubit system in the computational basis state: 
+\begin{equation} 
+    \bigotimes{i=0}^{n-1} \ket{x_i} = \ket{x_0 x_1\dots x_{n-1}} \; .
+\end{equation} This representation requires $\mathcal{O}(n)$ qubits, where both the gate complexity for implementation and information retrieval through measurement scale as $\mathcal{O}(1)$.
+\textit{Amplitude encoding} represents a complex-valued vector $x = (x_0, x_1, \dots, x{N-1})$, where $N = 2^n$, using $n$ qubits as: \begin{equation} \frac{1}{\alpha}\sum_{i=0}^{N-1} x_i \ket{i} \; , \end{equation} where $\sum_{i=0}^{N-1} |x_i|^2 = |\alpha|^2$. While the qubit complexity is efficient at $\mathcal{O}(\log(N))$, the gate complexity for encoding scales exponentially with qubit count in the worst case \cite{larose2020robust}.
+There appears to be a fundamental trade-off in encoding between qubit count and gate complexity. A compromise between these approaches is \textit{angle encoding}, where $n$ continuous values $x = (x_0, x_1, \dots, x_{n-1})$ are encoded as relative phases $\bigotimes_{i=0}^{n-1} R(x_i) \ket{0}$, with $R(x)$ representing a single-qubit rotation, typically chosen as a rotation around a Pauli basis axis.
+Various variants of angle encoding have been proposed. By combining rotations around two different axes per qubit, it becomes possible to encode two values per qubit, termed dense angle encoding. This approach can be extended to encode more values per qubit through repeated rotational layers \cite{grover2002creating}.
+
+
+Quantum-inspired problems are, in contrast, typically formulated within the \textit{Pauli-access model} \cite{wang2024qubit}, which requires input in the form of a Hermitian matrix $H = \sum_{i} a_i P_i$, where $P_i$ are Pauli strings and $a_i$ are the corresponding coefficients. $H$ typically represents the Hamiltonian of the investigated system. This decomposition naturally arises from intrinsic formulations of the underlying physical theories, so no additional overhead is needed to obtain this decomposition. Encoding such Hermitian matrices on quantum devices constitutes a core routine in many quantum computing algorithms. For instance, encoding the Hamiltonian into the phase of a state is a necessary step for algorithms such as \ac{QPE}. In \ac{VQE}, the structure of the Hamiltonian can inspire the construction of the ansatz and is essential for evaluating the cost function, which is the expectation value $\bra{\psi (\bm{\theta})} H \ket{\psi (\bm{\theta})}$. This approach is well-explored, as discussed in Sec.~\ref{sec:measure}.
+Can classical data learning tasks benefit from such Pauli-access models?
+
+
+    
+\section{Approach and Rresults}
+
+\begin{figure}[h!]
+    \centering
+    \begin{subfigure}[t]{0.5\textwidth}
+        \centering
+        \includegraphics[width=0.8\textwidth]{images/qnlp/pipeline_short.pdf}
+        \captionsetup{justification=centering}
+        \caption{}
+        \label{fig:flippedmodel}
+    \end{subfigure}\hfill\begin{subfigure}[t]{0.5\textwidth}
+        \centering
+        \includegraphics[width=0.8\textwidth]{images/qnlp/dec_classifier_description.pdf}
+        \captionsetup{justification=centering}
+        \caption{}
+        \label{fig:SIM}
+    \end{subfigure}
+   \caption{\textbf{(a):} A schematic of the flipped model for sentiment analysis. Instead of encoding classical input data into the quantum state, we embed the data into an observable that interacts with the parametrized quantum circuit through measurement. The classical observable is decomposed into Pauli strings to offer the possibility to leverage established measurement schemes from VQEs, which are also based on parametrized quantum circuits but inherently formulated in the language of Pauli strings. \textbf{(b):} A schematic of the SIM variant. The classical input $x_i$ is transformed via a parametrized bias term, then projected onto a finite random set of Pauli strings $P_k$ with learnable weights $\alpha_k$. These represent observables that are measured on a quantum state produced via a parametrized quantum circuit $U(\bm{\theta})$. All parameters are trained to learn the sentiment classification task. Both figures are taken from [P]\todo{write the reference here}.}
+\end{figure}
+
+In our work, we investigate an instance of a \textit{flipped model} \cite{Jerbi2024shadows}, where instead of encoding data into the quantum state, as commonly practiced in QML, the data is encoded into the observable. A visual representation of this flipped approach is given in Fig.~\ref{fig:flippedmodel}. To benefit from the results developed for chemistry applications of variational circuits, these classical observables are also mapped to a weighted sum of Pauli strings.
+For a proof-of-concept, we begin with a general encoding where the input data $x \in X$, represented as a sequence of embeddings $x = (x_0, \dots, x_{s-1})$ with $x_i \in \mathbb{R}^d$, undergoes the following transformation to obtain an observable per input data $x$: 
+\begin{equation} 
+    H{\bm{\phi}}(x) = H{\bm{\phi}}^0 + \frac{1}{s} \sum{i=0}^{s-1} \ket{xi} \bra{xi} \; .
+\end{equation}
+We compute a sum of the outer products of the embeddings $x_i$ and add a parametrized bias term $H_\phi^0$. Raw embeddings that are elements of $\mathbb{R}^d$, are padded with zeros such that the dimension becomes a power of $2$.
+
+Given a parametrized quantum circuit $U(\bm{\theta})$, which we choose to be the hardware-efficient ansatz, the output of the quantum computer under the data-encoded observable per input data is:
+\begin{equation}
+    f{\bm{\theta},\bm{\phi}}(x) = \sigma(\bra{0} U(\bm{\theta})^\dagger H{\bm{\phi}}(x) U(\bm{\theta})\ket{0}) \; ,
+\end{equation} where $\ket{0} = \ket{0}^{\otimes n}$ denotes the shorthand notation for the $n$-qubit ground state, and
+\begin{equation}
+    \sigma(t) = \frac{1}{1 + e^{-t}}
+\end{equation} is the sigmoid function for regularization, as commonly practiced in machine learning.
+The cost function to minimize for the training dataset $X$ and the set of ground-truth binary labels $Y$ becomes:
+\begin{equation}
+    \min{\bm{\theta},\bm{\phi}} c(\bm{\theta},\bm{\phi}) = \frac{1}{|X|} \sum_{x \in X, y \in Y} \mathcal{L}(f{\bm{\theta},\bm{\phi}}(x), y) \; , 
+\end{equation} where the loss function $\mathcal{L}(\cdot, \cdot)$ is chosen to be the cross-entropy: \begin{equation}
+    \mathcal{L}(f(x_i),y_i) = -y_i \log(f(x_i)) - (1-y_i) \log(1-f(x_i)) \; .
+\end{equation}
+
+For our empirical study, we choose to simulate the workflow classically by explicitly multiplying dense representations of the state vector to parametrized unitaries, and the operator. In this case, we can keep the observables $H{\bm{\phi}}(x)$ as is. However, if we consider the scenario where we want to measure the observables on an actual quantum device, it is convenient to decompose these data-encoded operators in terms of Pauli matrices. An arbitrary matrix $M$ can be decomposed into the Pauli basis via trace operations to compute the coefficients $a_i$ associated with each Pauli string $P_i$: 
+\begin{equation} 
+    a_i = \frac{1}{2^n} \Tr (P_i M) \; , 
+\end{equation} since Pauli matrices have the characteristic of a vanishing trace and are self-inverse, i.e., only when $M = P_i$ we obtain a non-zero trace. Notably, there are $4^n$ distinct Pauli strings for an $n$-qubit system, making this decomposition computationally inefficient. We call this version, where we exactly decompose the observables, the \textit{fully-parametrized Hamiltonian} (HAM), and retain it as a baseline to compare against computationally tractable modifications of HAM.
+
+\subsection{Modifications of HAM}
+
+First, we introduce the \textbf{parameter-efficient HAM} (PEFF). The bias term $H{\bm{\phi}}^0(x)$ contains $2^n \times 2^n$ free parameters, exhibiting an impractical scaling. Instead, we define a bias vector $b{\bm{\phi}} \in \mathbb{R}^d$ to merely skew the data vector
+\begin{equation}
+    H{\bm{\phi}}(x) = \frac{1}{s} \sum{i=0}^{s-1} \ket{\tilde{xi}}\bra{\tilde{xi}} \; ,
+\end{equation} where $\ket{\tilde{xi}} = \ket{xi + b_{\bm{\phi}}}$.
+
+Next, we address the problem of intractable counts of Pauli strings with the \textbf{Simplified Hamiltonian} (SIM) variant. Here, instead of retaining the explicit outer product of the input data as an observable, we project the Hamiltonian only onto a randomly sampled subset of all Pauli strings ${P_j}_{j=0}^{nP-1}$ 
+\begin{equation} 
+    \tilde{H}{\bm{\phi}}(\tilde{x}) = \frac{1}{2^n} \sum_{j=0}^{n_P-1} a_j \Tr(P_j\ket{\tilde{x}}\bra{\tilde{x}}) \; ,
+\end{equation} where $a_j$ are trainable weights. This scheme is summarized in Fig.~\ref{fig:SIM}.
+The above setup is constructed for a binary classification task, i.e., the output of the quantum computer, $f_{\bm{\phi},\bm{\theta}}(x)$, is constrained to the interval $[-1,1]$, such that a sign function yields the inferred label. This approach can be generalized to multiclass classification tasks by constructing observables per class $c$; $\tilde{H}_c{\bm{\phi_c}}(\tilde{x})$.
+
+\section{Experiments and Results}
+
+The QML workflows HAM, PEFF, and SIM have been benchmarked across various datasets and compared against other QML and classical ML frameworks.
+For NLP tasks, the following three datasets were selected:
+\begin{itemize}
+    \item The GLUE Stanford Sentiment Treebank (SST) dataset \cite{socher2013recursive, wang2019superglue}, containing $\sim 70k$ single sentences extracted from movie reviews with binary sentiment labels (positive/negative)
+    \item The IMDb Large Movie Review Dataset \cite{stanford2011imdb}, containing $\sim 50k$ highly polar movie reviews
+    \item The AG News dataset \cite{zhang2015agnews}, containing $\sim 128k$ news articles divided by topic (world, sports, business, sci/tech) for the multiclass classification task
+    \end{itemize}
+    
+All NLP tasks underwent identical preprocessing: removal of all punctuation, lowercasing of all text, tokenization with a whitespace strategy, and finally embedding tokens with word2vec \cite{mikolov2013distributed}. The results are sequences $x \in \mathbb{R}^d$ with $d=300$ that require an $n=9$ qubit system to compute expectation values from the data-encoded observables.
+
+Additionally, image classification tasks were also conducted:
+\begin{itemize}
+    \item The binarized version of the MNIST dataset \cite{mnistdataset}, containing $\sim 12k$ $16 \times 16$ pixel images of handwritten digits $0$ and $1$ 
+    \item The FashionMNIST dataset \cite{xiao2017fashion}, containing $\sim 60k$ $28 \times 28$ grayscale images of clothing subdivided into 10 classes
+    \item The binarized version of CIFAR-10 \cite{krizhevsky2012imagenet}, containing $\sim 60k$ $32 \times 32$ RGB images. The 10 classes (airplanes, cars, birds, cats, deer, dogs, frogs, horses, ships, and trucks) are grouped into 2 categories: vehicles and animals
+    \end{itemize}
+The data vectors are constructed by flattening the image matrices. Rounding up to the next largest power of 2, the MNIST handwritten dataset requires $8$ qubits, while FashionMNIST and CIFAR-10 require $10$ qubits.
+
+
+
+While the employed quantum circuit ansatz $U(\bm{\theta})$ follows a hardware-efficient structure, the concrete circuits are chosen via hyperparameter optimization, as are the number of repetitions of the entangling and rotational gates. Details can be found in Appendix~\ref{sec:apn-hyp}.
+
+The QML architectures serving as baselines for HAM, PEFF, and SIM are conventional variational circuit-based approaches where data encoding occurs in the quantum state. We denote as CIRC the case where we choose amplitude encoding as the encoding method, then employ the same variational circuit as in HAM, followed by linear regression on the output for sequential data. Additionally, we evaluate the Quantum Long Short-Term Memory ansatz (QLSTM) \cite{chen2020qlstm}, which is the quantum analogue to the classical LSTM model, and for image data, the quantum convolutional neural network (QCNN) \cite{Cong2019qcnn}.
+
+As classical baselines, we select the multi-layer perceptron (MLP), logistic regression (LOG), recurrent neural network (RNN), Long Short-Term Memory (LSTM), and convolutional neural network (CNN). Hyperparameters for the reported values are documented in Appendix~\ref{sec:apn-hyp}.
+\begin{table*}
+\centering
+\begin{tabular}[width=\textwidth]{lcCCC}
+\toprule
+\textbf{Model} & \textbf{Reference} & \textbf{Qubit count} & \textbf{Gate complexity} & \textbf{Sample complexity} \\
+\midrule
+% Placeholder & Our &\bigO(1) &\bigO(1) &\bigO(1) \\
+QCNN & \cite{Henderson2020qcnn} &\bigO(d) &\bigO(d^2) &\bigO(2^d) \\
+ & \cite{Cong2019qcnn} &\bigO(\log d) &\bigO(d + l \log d) &\bigO(n_p) \\
+QLSTM & \cite{chen2020qlstm} &\bigO(d) &\bigO(l d) &\bigO(d) \\
+QNN & \cite{Farhi2018qnn} &\bigO(d) &\bigO(l) &\bigO(1) \\
+ & \cite{Mitarai2018qnn} &\bigO(d) &\bigO(l d) &\bigO(1)\\
+ & \cite{schuld2020qnn} &\bigO(\log d) &\bigO(d + l \log d) &\bigO(1) \\
+% CIRC & - &\bigO(\log d) &\bigO(d + l \log d) &\bigO(d) \\
+\hline
+HAM & Ours &\bigO(\log d) &\bigO(l \log d) \text{ or }\bigO( l \log (d)^2 ) &\bigO(d^2) \\
+PEFF & Ours &\bigO(\log d) &\bigO(l \log d) \text{ or }\bigO( l \log (d)^2 ) &\bigO(d^2) \\
+SIM & Ours &\bigO(\log d) &\bigO(l \log d) \text{ or }\bigO( l \log (d)^2 ) &\bigO(n_p) \\
+\bottomrule
+\end{tabular}
+\caption{Theoretical scaling comparison of various VQCs, with $d$ input size, $l$ number of layers, and $n_p$ number of Pauli strings to measure (defined as a hyperparameter). Table taken from \todo{hardcoded citation}}
+\label{tab:complexity-comp}
+\end{table*}
+
+
+\begin{table*}
+\begin{adjustwidth}{-1.5in}{-1.5in}  
+\centering
+\begin{tabular}{llcc|lcc|lcc}
+\toprule
+& \multicolumn{3}{c}{SST2} & \multicolumn{3}{c}{IMDb} & \multicolumn{3}{c}{AG News} \\
+Model & \# Params & Train & Test* & \# Params & Train & Test & \# Params & Train & Test \\
+\midrule
+LOG     & 301       & 84.7 & 80.4   & 301     & 85.8 & 85.5 & 1204     & 90.1 & 89.2 \\
+MLP     & 180901    & 97.5 & 80.2   & 180901    & 88.1 & 85.8 & 40604    & 90.2 & 89.1 \\
+LSTM    & 241701    & 97.8 & 84.4   & 241600   & 99.3 & 88.4 & 242004   & 91.5 & 90.5 \\
+RNN     & 40301     & 89.6 & 80.1   & 60501    & 79.7 & 78.1 & 40604    & 88.8 & 88.1 \\
+CIRC    & 923       & 85.2 & 80.1    & 923     & 86.1 & 85.8 & 2387     & 89.7 & 89.2 \\
+QLSTM  & 2766       & 89.9 & 84.4    & 4679     & 76.8 & 67.9 & 3582     & 87.2 & 86.7 \\
+\hline
+HAM     & 130854    & 91.2 & 82.3   & 130926    & 91.0    & 88.1 & -        & -    & - \\
+PEFF    & 410       & 81.8 & 80.0    & 410  & 84.0    & 83.8 & -        & -    & - \\
+% old_SIM     & 9410      & 84.5 & 80.1    & 3332     & 89.8 & 89.3 \\
+SIM     & 1338      & 80.6 & 79.0    & 1410     & 86.0 & 85.3 & 4416     & 89.4 & 88.6 \\
+\bottomrule
+\end{tabular}
+\end{adjustwidth}
+\caption{Accuracies across text datasets. Results are averaged over $10$ runs or (*) run achieving lowest training loss. Table taken from \todo{hardcoded reference}}
+\label{tab:res-text}
+\end{table*}
+
+\begin{table}
+\setlength{\tabcolsep}{4pt}
+\begin{adjustwidth}{-1in}{-1in}  
+\centering
+\begin{tabular}{llcc|lcc}
+\toprule
+& \multicolumn{3}{c}{CIFAR2} & \multicolumn{3}{c}{Fashion} \\
+Model & Params & Train & Test & Params & Train & Test \\
+\midrule
+LOG & 1025 & 73.9 & 72.9 & 1025 & 85.5 & 83.5 \\
+MLP & 112701 & 89.0 & 83.4 & 89610 & 87.9 & 85.8 \\
+CNN & 75329 & 96.3 & 94.1 & 130250 & 95.4 & 90.7 \\
+CIRC & 2081 & 85.1 & 84.6 & 11094 & 89.2 & 86.5 \\
+QCNN & 169 & 84.9 & 84.7 & 558 & 76.7 & 76.3 \\
+\hline
+HAM & 523818 & 89.6 & 81.0 & - & - & - \\
+PEFF & 1056 & 79.3 & 78.7 & - & - & -  \\
+% old_SIM & 3840 & 99.4 & 99.9 & 6822 & 85.9 & 83.9 \\
+SIM & 2156 & 68.9 & 68.2 & 10934 & 87.6 & 84.4 \\
+\bottomrule
+\end{tabular}
+\end{adjustwidth}
+\caption{Accuracies across image datasets. Results are averaged over $10$ runs.Table taken from \todo{hardcoded citation}}
+\label{tab:res-img}
+\end{table}
+Before comparing the performances of various quantum and classical architectures across several tasks, we present a brief intermezzo comparing the computational resources required to implement the QML methods (Tab.~\ref{tab:complexity-comp}). We compare the qubit count, gate complexity, and sample complexity of our setup with those proposed in the literature with respect to the input data dimension $d$, number of ansatz layers $l$, and the number of Pauli strings to measure $n_p$. Qubit counts are either logarithmic in the input dimension or linear. The gate complexity is either kept free as a hyperparameter $l$ or scales with $d$, ranging from $\log(d)$ to $d^2$. The sample complexity ranges from exponential in $d$ to quadratic and linear, or can be designed as a one-shot algorithm in the case of QNNs, or can have a dedicated hyperparameter $p$ as in our SIM or Cong et al.'s QCNN \cite{Cong2019qcnn} model. Due to the logarithmic qubit requirement and shallow circuit depth, combined with sample complexity largely defined through the number of Pauli strings, it is fair to characterize SIM as a NISQ-compatible framework. Note that the sample complexity incurs shot noise scaling dependent on the desired precision of expectation values. Here, in comparison to the chemistry use case of VQEs, where there is a commonly targeted precision known as chemical accuracy, it is unclear which target should be chosen in classification tasks and deserves to be studied more carefully in follow-up work.
+
+Finally, let us compare performances, which are summarized in Tab.~\ref{tab:res-text} for NLP datasets and Tab.~\ref{tab:res-img} for computer vision datasets, respectively. The tables document the average test scores among 10 runs with different random seeds and the best score in the test dataset. The MNIST dataset is omitted from the table since it achieved almost perfect scores across all studied models.
+
+For the SST2 task, HAM demonstrates competitive performance with established baselines, achieving higher scores than simpler models such as LOG, MLP, or RNN, as well as CIRC. Only LSTM and QLSTM score approximately 2 percent higher. In the IMDb dataset, HAM performs on par with the best-scoring classical baseline, LSTM. SIM drops about 3 percent, performing comparably to CIRC or LOG. For AG News, the multiclass classification problem was only tested with SIM, which achieved performance on par with RNN, CIRC, LOG, and MLP, scoring slightly lower than LSTM. Overall, PEFF and SIM appear to be reasonable approaches for reducing parameter counts while maintaining competitive performance. 
+In the image classification tasks, we observe that these represent more challenging problems, where classical CNNs excel. In the binary CIFAR experiment, HAM achieves relatively good accuracy, but performance drops rapidly for PEFF and SIM. For the multiclass FashionMNIST dataset, which was again only implemented with SIM, SIM scores better than QCNN and LOG, while CIRC and MLP perform on par with it.
+
+\begin{figure}
+    \centering
+    \begin{subfigure}[t]{0.5\linewidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/qnlp/pauli_agnews_test_accuracy.pdf}
+        \captionsetup{justification=centering}
+        \caption{}
+        \label{fig:placeholder}
+    \end{subfigure}\hfill\begin{subfigure}[t]{0.5\linewidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/qnlp/pauli_agnews_train_accuracy.pdf}
+        \captionsetup{justification=centering}
+        \caption{}
+        \label{fig:placeholder}
+    \end{subfigure}
+        \begin{subfigure}[t]{0.5\linewidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/qnlp/pauli_fashion_test_accuracy.pdf}
+        \captionsetup{justification=centering}
+        \caption{}
+        \label{fig:placeholder}
+    \end{subfigure}\hfill\begin{subfigure}[t]{0.5\linewidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/qnlp/pauli_fashion_train_accuracy.pdf}
+        \captionsetup{justification=centering}
+        \caption{}
+        \label{fig:placeholder}
+    \end{subfigure}
+    \caption{The accuracy of multi-class classification tasks depending on the number of considered Pauli strings in SIM. The training and test accuracies are plotted for the AG News and FashionMNIST tasks. We observe a strictly increasing relationship between the Pauli string count and accuracies, which seem to approch some saturation point. This is great evidence that not all $4^n$ Pauli strings need to be considered as in HAM, but a substatially smaller subset suffices as in SIM. Figures are taken from \todo{hardcoded citation}}
+    \label{fig:accuracyPauli}
+\end{figure}
+
+
+
+\begin{table}
+\centering
+\begin{tabular}{llcc}
+\toprule
+ & \# Params & Train & Test* \\
+\midrule
+HAM     & 130854    & 91.2 & 82.3 \\
+PEFF    & 410       & 81.8 & 80.0 \\
+SIM     & 9410      & 84.5 & 80.1 \\
+\hline
+STATEIN     & 130854    & 92.0 & 80.2 \\
+NOBIAS     & 38    & 70.0 & 71.9 \\
+\bottomrule
+\end{tabular}
+\caption{Accuracies of additional variants on SST2. Results are averaged over $10$ runs or (*) run achieving best train accuracy. Table taken from \todo{hardcoded citation}}
+\label{tab:abl-sst2}
+\end{table}
+For our architecture, we conduct additional experiments to understand the effect of certain components. We performed the AG News task and FashionMNIST with SIM using varying Pauli string counts and observe a positive correlation between Pauli term count and both training and test accuracy for image classification and sentiment classification (Fig.~\ref{fig:accuracyPauli}). There appears to be saturating behavior that occurs much faster than the entirety of all Pauli strings compared to the full HAM case, which is $4^9 \sim 2.6\times 10^5$ for AG News and $4^{10} \sim 1.0\times 10^6$ for FashionMNIST.
+
+Moreover, the significance of the parametrized bias term of the data-encoded Hamiltonian has been investigated on the SST2 dataset. We observe a significant performance drop of approximately 10 percent when this term is removed. Another experiment examines the effect of additional data encoding into the quantum state on top of the data-encoded measurement. Specifically, in STATEIN we apply the parametrized circuit not to the zero state $\ket{0}^{\otimes n}$, but to the amplitude-encoded state vector $\ket{\tilde{x}}$. While the training accuracy surpasses all other variants, the test accuracy remains approximately the same as variant SIM. We attribute this to overfitting and consider it evidence that redundant data encoding provides no further benefits.
+
+\section{Conclusion and outlook}
+We propose a QML architecture that shifts the data encoding problem from the quantum computer to the measurement operator, thus relieving requirements on quantum hardware and making the procedure amenable to NISQ hardware as well as large-scale classical simulation for proof-of-concept studies using meaningfully sized NLP and computer vision test sets. We propose a Pauli string projection-based data encoding for observables, where we test the HAM variant, which represents the exact decomposition of the outer product of the classical data vector as a baseline, and propose two additional variants: PEFF, which has significantly reduced parameter counts, and SIM, which further restricts the number of projected Pauli strings to enable favorable sampling complexities once the workflow is implemented on a quantum computer.
+The conducted benchmarks reveal that our proposed model does not yet match the performance of state-of-the-art classical models. However, it demonstrates that performance can be made equivalent to alternative QML approaches with data encoding into the quantum state, empirically validating the "flipped model" approach. This circumvents the classical data loading problem often discussed in QML by transferring it to the measurement. In this study, the Pauli strings onto which the input data is projected in the SIM variant are chosen randomly; however, future studies would benefit from investigating whether this pool of Pauli strings can be optimized for accuracy and/or sampling efficiency. Additionally, pairing the measurement with classical shadow methods \cite{huang2020predicting} may render this approach more performant under a fixed measurement budget. Overall, we demonstrate rigorous empirical benchmarking of a novel QML architecture on datasets that extend beyond toy problems and are also employed in classical ML tasks.
+
+
+    
+\end{document}
