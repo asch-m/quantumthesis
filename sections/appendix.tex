@@ -2,16 +2,17 @@
 \graphicspath{{\subfix{../images/}}}
 \begin{document}
 
+\section{Appendix to Chapter \ref{chap:mbvqe}}
 
-\section{}{Appendix to Chapter ...}
+The following appendix is taken from \cite{schroeder2024deterministic}.
 
-% \subsection{Overview of other previous works}~\label{app:overview}
+\subsection{Overview of other previous works}~\label{app:overview}
 
-% The work by Ferguson et al. \cite{ferguson2021measurement} inspired further investigations of the performance and resource requirements of other VQE instances in the MBQC framework. Proietti et al.~\cite{proietti2022native} studied an MBQC native way to implement the Quantum Approximate Optimization Algorithm (QAOA) \cite{farhi2014a}, which makes use of the fact that operations that are diagonal in the computational basis are exceptionally efficient in MBQC as ``input'' and  ``output'' qubits coincide \cite{browne2006one}. They tested the MBQC algorithm by simulating this method in the context of the k-max cut problem.
-% Qin et al. \cite{qin2023applicability} showed an MBQC version of the Hamiltonian variational ansatz \cite{wecker2015progress} that makes use of efficient 2-body operators implemented in the same sense as the QAOA operator. Combined with local rotations on the input/output qubits, it is possible to generate all Pauli rotations.
-% Chan et al. \cite{chan2023hybrid} included these efficient MBQC-based multi-qubit Pauli-rotations, also referred to as Pauli-gadgets, within a gate-based circuit. This work included experiments on the IBM 7-qubit machine that indicate a possible advantage of operating gate-based hardware in MBQC manner.
-% Marqversen et al. \cite{marqversen2023applications} discuss and exhibit how MBQC can reduce hardware resources for applications such as VQE, demonstrate specific use cases, and introduce efficient ways to simulate MBQCs with tensor networks.
-% While Majumder et al. \cite{majumder2023variational} used almost the same MBQC pattern as in our work to generate their ansatz and acknowledge the importance of byproducts in MBVQE, but instead of correcting them, they utilize this randomness to learn probability distributions better in the context of generative modeling. A part of these works used post-selection to guarantee the convergence of variational algorithm~\cite{ferguson2021measurement, proietti2022native}, while others used different measurement bases than $R(\theta)$ and achieved determinism~\cite{chan2023hybrid, huang2022near, marqversen2023applications}. While sufficient attention was not given to determinism in the initial works of MBVQE, recent papers (including ours) discuss the problem extensively for distinct settings and applications. 
+The work by Ferguson et al. \cite{ferguson2021measurement} inspired further investigations of the performance and resource requirements of other VQE instances in the MBQC framework. Proietti et al.~\cite{proietti2022native} studied an MBQC native way to implement the Quantum Approximate Optimization Algorithm (QAOA) \cite{farhi2014a}, which makes use of the fact that operations that are diagonal in the computational basis are exceptionally efficient in MBQC as ``input'' and  ``output'' qubits coincide \cite{browne2006one}. They tested the MBQC algorithm by simulating this method in the context of the k-max cut problem.
+Qin et al. \cite{qin2023applicability} showed an MBQC version of the Hamiltonian variational ansatz \cite{wecker2015progress} that makes use of efficient 2-body operators implemented in the same sense as the QAOA operator. Combined with local rotations on the input/output qubits, it is possible to generate all Pauli rotations.
+Chan et al. \cite{chan2023hybrid} included these efficient MBQC-based multi-qubit Pauli-rotations, also referred to as Pauli-gadgets, within a gate-based circuit. This work included experiments on the IBM 7-qubit machine that indicate a possible advantage of operating gate-based hardware in an MBQC manner.
+Marqversen et al. \cite{marqversen2023applications} discuss and exhibit how MBQC can reduce hardware resources for applications such as VQE, demonstrate specific use cases, and introduce efficient ways to simulate MBQCs with tensor networks.
+While Majumder et al. \cite{majumder2023variational} used almost the same MBQC pattern as in our work to generate their ansatz and acknowledged the importance of byproducts in MBVQE, but instead of correcting them, they utilized this randomness to learn probability distributions better in the context of generative modeling. A part of these works used post-selection to guarantee the convergence of the variational algorithm~\cite{ferguson2021measurement, proietti2022native}, while others used different measurement bases than $R(\theta)$ and achieved determinism~\cite{chan2023hybrid, huang2022near, marqversen2023applications}. While sufficient attention was not given to determinism in the initial works of MBVQE, recent papers (including ours) discuss the problem extensively for distinct settings and applications. 
 
 % \section{Measurement-based quantum computing}\label{appendix:mbqc}
 
@@ -91,20 +92,18 @@
 %    \label{fig:flow}
 % \end{figure}
 
+% \section{Previous Work}
 
+% While MBQC was initially considered merely a theoretical concept to bridge the field of quantum computation and quantum information science due to the required high qubit counts, it has regained interest as a circuit-depth reducing technique in the current realm of gate-based NISQ computing \cite{broadbent2007parallelizing}. Hardware execution of currently known quantum algorithms is often prohibited by the limited number of gates that can be applied before hardware noise dominates the output signal. In the gate-based picture, MBQC requires the circuit depth for the initial resource state preparation; the computation is only implemented with local measurements. While the final MBQC computation time depends on the number of adaptive measurements, the implemented circuit is considerably \textit{shallow}. This observation triggered research of hybrid schemes that marry MBQC and gate-based NISQ algorithms.
+% The first applied study of this kind was conducted by Ferguson et al. \cite{ferguson2021measurement}, who introduced two possible ways to translate the popular gate-based NISQ algorithm, the VQE, to an algorithm suited for MBQC. One is to translate an already known gate-based ansatz to an MBQC measurement pattern utilizing translation methods introduced in ~\cite{raussendorf2003measurement}. This is thought to be attractive for ansaetze that contain a large amount of Clifford operations. It is known that Clifford operations translate to measurement patterns consisting only of measurements in the Pauli bases. In this case, all measurements can be performed in parallel at a single time step. A more quantum resource-conscious possibility to treat Clifford operations would be to precompute the post-measurement graph state classically by either employing the Gottesmann-Knill theorem \cite{aaronson2004improved} or graph-based measurement rules for graph states ~\cite{hein2006entanglement}.
 
-%\section{Previous Work}
+% The second method for combining VQE and MBQC is to design a problem-inspired ansatz that is particularly simple to implement in the MBQC framework. Ferguson et al.~proposed such an ansatz to study perturbed instances of the toric code Hamiltonian. The ground state of the unperturbed Hamiltonian is known to be a graph state. In the proposed ansatz, this ground state is chosen as the baseline, the \textit{ansatz qubits}, which will be tuned according to the perturbation using an \textit{edgewise} modification scheme. The \textit{strength} of entanglement between two connected qubits in the ground state graph is weakened by the actions of $R(\theta)$-basis measurements of the attached auxiliary qubits, which are called \textit{decoration qubits}. The suggested ansatz seems especially useful for cases with a strong perturbation on a single local site. Notably, the overall measurement pattern for the suggested edgewise decoration scheme will lack \textit{flow} \cite{danos2006determinism,browne2007generalized} if the degree of the ansatz graph is larger than one. 
 
-%While MBQC was initially considered merely a theoretical concept to bridge the field of quantum computation and quantum information science due to the required high qubit counts, it has regained interest as a circuit-depth reducing technique in the current realm of gate-based NISQ computing \cite{broadbent2007parallelizing}. Hardware execution of currently known quantum algorithms is often prohibited by the limited number of gates that can be applied before hardware noise dominates the output signal. In the gate-based picture, MBQC requires the circuit depth for the initial resource state preparation; the computation is only implemented with local measurements. While the final MBQC computation time depends on the number of adaptive measurements, the implemented circuit is considerably \textit{shallow}. This observation triggered research of hybrid schemes that marry MBQC and gate-based NISQ algorithms.
-%The first applied study of this kind was conducted by Ferguson et al. \cite{ferguson2021measurement}, who introduced two possible ways to translate the popular gate-based NISQ algorithm, the VQE, to an algorithm suited for MBQC. One is to translate an already known gate-based ansatz to an MBQC measurement pattern utilizing translation methods introduced in ~\cite{raussendorf2003measurement}. This is thought to be attractive for ansaetze that contain a large amount of Clifford operations. It is known that Clifford operations translate to measurement patterns only consisting of measurements in the Pauli bases. In this case, all measurements can be performed in parallel at a single time step. A more quantum resource-conscious possibility to treat Clifford operations would be to precompute the post-measurement graph state classically by either employing the Gottesmann-Knill theorem \cite{aaronson2004improved} or graph-based measurement rules for graph states ~\cite{hein2006entanglement}.
+% The work by Ferguson et al. inspired further investigations of the performance and resource requirements of other VQE instances in the MBQC framework. Proietti et al.~\cite{proietti2022native} studied an MBQC native way to implement the Quantum Approximate Optimization Algorithm (QAOA) \cite{farhi2014a}, which makes use of the fact that operations that are diagonal in the computational basis are exceptionally efficient in MBQC as ``input'' and  ``output'' qubits coincide \cite{browne2006one}. They tested the MBQC algorithm by simulating this method in the context of the k-max cut problem.
 
-%The second method for combining VQE and MBQC is to design a problem-inspired ansatz that is particularly simple to implement in the MBQC framework. Ferguson et al.~proposed such an ansatz to study perturbed instances of the toric code Hamiltonian. The ground state of the unperturbed Hamiltonian is known to be a graph state. In the proposed ansatz, this ground state is chosen as the baseline, the \textit{ansatz qubits}, which will be tuned according to the perturbation using an \textit{edgewise} modification scheme. The \textit{strength} of entanglement between two connected qubits in the ground state graph is weakened by the actions of $R(\theta)$-basis measurements of the attached auxiliary qubits, which are called \textit{decoration qubits}. The suggested ansatz seems especially useful for cases with a strong perturbation on a single local site. Notably, the overall measurement pattern for the suggested edgewise decoration scheme will lack \textit{flow} \cite{danos2006determinism,browne2007generalized} if the degree of the ansatz graph is larger than one. 
+% Qin et al. \cite{qin2023applicability} showed an MBQC version of the Hamiltonian variational ansatz \cite{wecker2015progress} that makes use of efficient 2-body operators implemented in the same sense as the QAOA operator. Combined with local rotations on the input/output qubits; it is possible to generate all Pauli-rotation.
 
-%The work by Ferguson et al. inspired further investigations of the performance and resource requirements of other VQE instances in the MBQC framework. Proietti et al.~\cite{proietti2022native} studied an MBQC native way to implement the Quantum Approximate Optimization Algorithm (QAOA) \cite{farhi2014a}, which makes use of the fact that operations that are diagonal in the computational basis are exceptionally efficient in MBQC as ``input'' and  ``output'' qubits coincide \cite{browne2006one}. They tested the MBQC algorithm by simulating this method in the context of the k-max cut problem.
-
-%Qin et al. \cite{qin2023applicability} showed an MBQC version of the Hamiltonian variational ansatz \cite{wecker2015progress} that makes use of efficient 2-body operators implemented in the same sense as the QAOA operator. Combined with local rotations on the input/output qubits; it is possible to generate all Pauli-rotation.
-
-%Chan et al. included these efficient MBQC-based multi-qubit Pauli-rotations, also referred to as Pauli-gadgets, within a gate-based circuit. This work included experiments on the IBM 7-qubit machine that indicate a possible advantage of operating gate-based hardware in MBQC manner.
+% Chan et al. included these efficient MBQC-based multi-qubit Pauli-rotations, also referred to as Pauli-gadgets, within a gate-based circuit. This work included experiments on the IBM 7-qubit machine that indicate a possible advantage of operating gate-based hardware in MBQC manner.
 
 \subsection{Graph state modifications}\label{appendix:graph}
 Here, we recall some valuable relations of graph states that are used in this work. Local  complementations (LC) implements \cite{adcock2020mapping,van2004graphical} the local unitary transformation of the following form:
@@ -118,13 +117,13 @@ Here, we recall some valuable relations of graph states that are used in this wo
     \phantomsubcaption\label{fig:lclu}
     \phantomsubcaption\label{fig:measpattern}
     }
-    \caption{\textbf{Left}: Graph states linked through local complementation are local Clifford equivalent. In our experiments, we choose to implement the left graph since it can be directly executed on the IBM device. \textbf{Right}: By preparing the heavy-hex graph state and measuring the blue qubits in the illustrated bases, it is possible to generate a cluster state without the need for SWAP gates. However, it's important to note that the measurement outcomes of Pauli measurements on graph states are not graph states but rather local unitary equivalents. Despite this, these ``byproduct'' operators can be efficiently computed from the measurement outcomes of the auxiliary qubits and accounted for in subsequent calculations due to Gottesman–Knill theorem.}
+    \caption{\textbf{Left}: Graph states linked through local complementation are local Clifford equivalent. In our experiments, we choose to implement the left graph since it can be directly executed on the IBM device. \textbf{Right}: By preparing the heavy-hex graph state and measuring the blue qubits in the illustrated bases, it is possible to generate a cluster state without the need for SWAP gates. However, it's important to note that the measurement outcomes of Pauli measurements on graph states are not graph states but rather local unitary equivalents. Despite this, these ``byproduct'' operators can be efficiently computed from the measurement outcomes of the auxiliary qubits and accounted for in subsequent calculations due to Gottesman–Knill theorem. This figure was taken from Ref.~\cite{schroeder2024deterministic}.}
     \label{fig:lc}
 \end{figure}
 
 
 If we want to implement a specific graph state, we could choose to implement the representative from the LC equivalence class with the lowest edge count or the representative that best suits the hardware topology.
-That is shown in Fig.~\ref{fig:lclu} -- the edge between the two qubits in the middle layer requires SWAP gates if implemented naively on quantum hardware with heavy-hex connectivity. However, it is easy to see that this edge can eliminated by local complementation on the parent-qubit. This graph can be directly mapped onto the respective hardware.
+That is shown in Fig.~\ref{fig:lclu} -- the edge between the two qubits in the middle layer requires SWAP gates if implemented naively on quantum hardware with heavy-hex connectivity. However, it is easy to see that this edge can be eliminated by local complementation on the parent-qubit. This graph can be directly mapped onto the respective hardware.
 
 To generate a cluster state with constant gate depth from hardware featuring heavy-hex connectivity, we start by creating a heavy-hex graph state. 
 %\begin{figure}
@@ -200,8 +199,7 @@ With this scheme, each \textit{honeycomb} becomes a square of the cluster state.
 %However, in the postselection strategy, we have to filter out roughly $50\%$ of the events, when we measured qubit $q_0$ in state $\ket{1}$ instead of $\ket{0}$.
 % After the final measurement correction in either of our schemes, we are effectively implementing the gate-based ansatz in Fig.~\ref{fig:gb4qubit}.
 
-\subsection{Clifford-data regression}
-\label{appendix:cdr}
+\subsection{Clifford-data regression}\label{appendix:cdr}
 Due to noise in the quantum hardware, expectation values extracted from circuit measurements have to be post-processed.
 Several error-mitigation strategies exist, such as zero-noise-extrapolation~\cite{PhysRevLett.119.180509}, self-mitigation~\cite{ARahman:2022tkr}, or probabilistic error cancellation~\cite{van2023probabilistic,gupta2023probabilistic}.
 For our experiments, we choose Clifford-data regression~\cite{Czarnik2021errormitigation} since dynamic circuits can be easily incorporated into this framework.
@@ -219,10 +217,165 @@ In this work, we assume a linear relationship, i.e.,
 which can be justified by the assumption of the existence of a global noise channel \cite{Czarnik2021errormitigation}.
 
 
-\section{Hyperparamter tuning}
-\label{sec:apn-hyp}
-\todo{ask mari about what would be the appropiate way to include this work?}
-A randomized search is performed to find the best hyperparametrs given per model and data set. $50$ configurations, train them on the task and evaluate their performance on the development set. To avoid overfitting, we perform early stopping on the training if development loss does not decrease for five consecutive epochs. Troughout all experiments, we utilize the \textit{Adam} optimizer provided by PyTorch. Since our largest model HAM has at most $\sim500k$ parameters (dictated by the embedding space), we limit the random search to configuration with less-than or equal number of parameters to ensure a fair comparison. In practice, we find RNNs, LSTMs and CNNs perform very well with as low as $40k$ parameters. What follows is a list of all hyperparameters we evaluated:
+\section{Appendix to Chapter \ref{chap:chem}}
+
+The following appendix is taken from \cite{amsler2023classical} and \cite{kiser2024classical}.
+
+\subsection{Molecular strctures}
+
+
+For the calculations on singlet and triplet molecular oxygen, and ozone presented in Sec.~\ref{sec:relative_energies}, Table~\ref{tab:results_exp_geo} and Table~\ref{tab:results_dft_geo}, we use experimental geometries from \cite{tanaka1970coriolis, krupenie1972spectrum}:
+\begin{table}[h!]
+\ce{^3O2}: \begin{tabular}{|c| S[table-format=+1.7] | S[table-format=+1.7] |S[table-format=+1.7]|}\hline
+{} & {$x/\AA{}$} & {$y/\AA{}$} & {$z/\AA{}$} \\ \hline
+\ce{O} & 0.0 & 0.0 &  0.603760\\
+\ce{O} & 0.0 & 0.0 & -0.603760\\ \hline
+\end{tabular} \nonumber \\
+\ce{^1O2}: \begin{tabular}{|c| S[table-format=+1.7] | S[table-format=+1.7] |S[table-format=+1.7]|}\hline
+\ce{O} & 0.0 & 0.0 &  0.607800\\
+\ce{O} & 0.0 & 0.0 & -0.607800\\ \hline
+\end{tabular}  \\
+\ce{^{\phantom{3}}O3}: \begin{tabular}{|c| S[table-format=+1.7] | S[table-format=+1.7] |S[table-format=+1.7]|}\hline
+\ce{O} & 0.0 & 0.0 &  0.0\\
+\ce{O} & 0.0 & 0.0 &  1.2717000\\ 
+\ce{O} & 1.1383850 & 0.0 & 1.8385340\\ \hline
+\end{tabular}\nonumber 
+\caption{Table was taken from \cite{amsler2023classical}.}\label{eq:exp_geo} 
+\end{table}
+
+We use geometries optimized at the density functional theory (DFT) level (UB3LYP/def2-QZVPP) as well, resulting in the xyz-structures:  
+\begin{table}[h!]
+\ce{^3O2}: \begin{tabular}{|c| S[table-format=+1.7] | S[table-format=+1.7] |S[table-format=+1.7]|}\hline
+{} & {$x/\AA{}$} & {$y/\AA{}$} & {$z/\AA{}$} \\ \hline
+\ce{O} & 0.0 & 0.0 &  0.6020120\\
+\ce{O} & 0.0 & 0.0 & -0.6020120\\ \hline
+\end{tabular} \nonumber \\
+\ce{^1O2}: \begin{tabular}{|c| S[table-format=+1.7] | S[table-format=+1.7] |S[table-format=+1.7]|}\hline
+\ce{O} & 0.0 & 0.0 &  0.6021008\\
+\ce{O} & 0.0 & 0.0 & -0.6021008\\ \hline
+\end{tabular}  \\
+\ce{^{\phantom{3}}O3}: \begin{tabular}{|c| S[table-format=+1.7] | S[table-format=+1.7] |S[table-format=+1.7]|}\hline
+\ce{O} &  3.1946229 & 3.9056962 &  0.0\\
+\ce{O} & -2.1046353 & 3.2467339 &  0.0\\ 
+\ce{O} & -1.0278818 & 3.9270800 & 0.0\\ \hline
+\end{tabular}\nonumber
+\caption{Table was taken from \cite{amsler2023classical}.}\label{eq:dft_geo}
+\end{table}
+
+
+
+
+\begin{table}[h!]
+\begin{tabular}{c|c|c|c|c|c|c} 
+  &  & HF & MP2 & BP86 & B3LYP & M06-2X \\ \hline
+ \ce{^3O2} & reference  & UHF & UHF & UKS & UKS & UKS \\
+ & $r_\mathrm{\ce{O}-\ce{O}}$ [pm] & 115.79 & 121.90 & 122.03 & 120.43 & 118.79 \\
+ & ZPVE [kJ/mol] & 11.78 & 8.84 & 9.24 & 9.78 & 10.55 \\ \hline
+  \ce{^1O2} & reference  & UHF & RHF & UKS & UKS & UKS \\
+ & $r_\mathrm{\ce{O}-\ce{O}}$ [pm] & 115.61 & 124.34 & 122.12 & 120.46 & 118.73 \\ 
+ & ZPVE [kJ/mol] & 11.80 & 7.72 & 9.20 & 9.75 & 10.54 \\ \hline
+\ce{O3} &  reference  & UHF & RHF & RKS (=UKS) & UKS & UKS \\
+ & $r_\mathrm{\ce{O}-\ce{O}}$ [pm] & 127.54 & 127.81 & 127.55 & 127.41 & 125.69 \\
+ & $\theta_{\ce{O}-\ce{O}-\ce{O}}$ [$^{\circ}$] & 118.14 & 116.76 & 118.14 & 116.55 & 116.05 \\
+ & ZPVE [kJ/mol] & 17.66 & 24.69 & 17.63 & 16.87 & 18.57 \\ 
+\end{tabular} 
+\caption{A benchmark on the method dependence of structural parameters as well as zero-point vibrational energies (ZPVE). All calculations are performed using the cc-pVQZ basis. This Table was taken from \cite{amsler2023classical}. \label{dft-struct-zpe-comparison}}
+ \end{table}
+
+\begin{table}[!]
+\begin{tabular}{l|l|l|l}                  & \ce{H4}                    & \ce{O2} \& \ce{O3}              & Hubbard system (\ce{CuBr2}) \\ \hline
+Number of walkers $N_\mathrm{W}$            & $10^3$ & $10^3$ & $10^3$                       \\ \hline
+Number of blocks  $N_\mathrm{B}$             & $10^3$ & $10^4$ & $10^4$                \\ \hline
+Time steps per block           & 10                    & 10                    & 10                     \\ \hline
+Equilibration time (in blocks) & 100                   & 1000                  & 3000                   \\ \hline
+Time step $\Delta\tau$ (a.u.)               & $0.005$                 & $0.005$                 & $0.005$                  \\ 
+\end{tabular}
+\caption{Parameters used in the AFQMC calculations. Parameters not reported here are set to the default setting of ipie \cite{malone2022a}. This table was taken from \cite{amsler2023classical}. \label{tab:comp_details}}
+\end{table}
+ 
+\begin{table}[h!]
+\centering
+\resizebox{\textwidth}{!}{
+\begin{tabular}{p{8mm}p{30mm}p{25mm}p{25mm}p{25mm}p{20mm}p{20mm}p{0mm}p{0mm}}
+\hline
+Basis & Method &  $E(\ce{^3O_2})$ [Ha] & $E(\ce{^1O_2})$ [Ha] & $E(\ce{O_3})$ [Ha] & $\Delta E (\ce{^1O_2})$ [kJ/mol] & $\Delta E (\ce{O_3})$ [kJ/mol]       &  &   \\
+\hline\hline
+& Experiment \cite{krupenie1972spectrum, weast1983} & - & - & - & 94.7 & 143.2 \\
+\hline\hline
+\multirow{6}{*}{\rotatebox{90}{\usebox0}}
+& R(O)HF & -149.6083 & -149.5414 & -224.2657 & 175.7 & 385.3 & &  \\ \cline{2-9}
+& CCSD(T) & -149.9892 & -149.9405 & -224.9149 & 127.9 & 180.9 & &  \\ \cline{2-9}
+& CASSCF & -149.7087 & -149.6757 & -224.4976 & 86.7 & 171.9 & &  \\ \cline{2-9}
+& NEVPT2 & -149.9579 & -149.9209 & -224.8759 & 96.9 & 159.8 & & \\ \cline{2-9}
+& AFQMC(HF) & -149.9827(7) & -149.9403(6) & -224.9116(14) & 111.2(25) & 164.0(41) & &  \\ \cline{2-9}
+& AFQMC(CASSCF) & -149.9912(3) & -149.9500(2) & -224.9188(4) & 108.0(10) & 178.3(13) & &  \\ \hline
+\hline
+
+\multirow{6}{*}{\rotatebox{90}{\usebox1}}
+& R(O)HF & -149.6528 & -149.5877 & -224.3405 & 171.1 & 364.4 & &  \\ \cline{2-9}
+& CCSD(T) & -150.1536 & -150.1058 & -225.1700 & 125.4 & 158.5 & &  \\ \cline{2-9}
+& CASSCF & -149.7519 & -149.7192 & -224.5688 & 86.1 & 155.2 & &  \\ \cline{2-9}
+& NEVPT2 & -150.1138 & -150.0782 & -225.1179 & 93.5 & 138.8 & & \\ \cline{2-9}
+& AFQMC(HF) & -150.1494(7) & -150.1055(8) & -225.1651(10) & 115.3(28) & 155.1(31) & &  \\ \cline{2-9}
+& AFQMC(CAS) & -150.1554(4) & -150.1146(3) & -225.1740(4) & 106.9(13) & 155.1(15) & &  \\ \hline
+\hline
+\multirow{8}{*}{\rotatebox{90}{\usebox2}}
+& R(O)HF & -149.6643 & -149.5995 & -224.3585 & 170.0 & 362.1 & &  \\ \cline{2-9}
+& UPBE & -150.2569 & -150.2431 & -225.3366 & 36.3 & 128.0 & &  \\ \cline{2-9}
+& UB3LYP & -150.3376 & -150.3214 & -225.4366 & 42.7 & 183.2 & &  \\ \cline{2-9}
+& CCSD(T) & -150.2343 & -150.1871 & -225.2929  & 124.0 & 153.8 & &  \\ \cline{2-9}
+& CASSCF & -149.7633 & -149.7306 & -224.5866 & 85.9 & 153.2  & &  \\ \cline{2-9}
+& NEVPT2 & -150.1928 & -150.1577 & -224.2378 & 92.0 & 134.8 & & \\ \cline{2-9}
+& AFQMC(HF) & -150.2279(7) & -150.1880(7) & -225.2901(12) & 104.7(27) & 135.8(36) & &  \\ \cline{2-9}
+& AFQMC(CASSCF) & -150.2354(4)  & -150.1962(3) & -225.2966(4) & 102.9(13) & 148.4(14) & &  \\ \hline
+\hline
+
+\multirow{4}{*}{\rotatebox{90}{\usebox3}}
+& CCSD(T) & -150.2879 & -150.2409 & -225.3742 &123.4 &151.3 & &  \\ \cline{2-9}
+& CASSCF & -149.7662 & -149.7334 & -224.5911 &86.3 & 152.8 & &  \\ \cline{2-9}
+& NEVPT2 & -150.2450 & -150.2102 & -225.3169 & 91.4 & 132.9 & & \\ \cline{2-9}
+& AFQMC(CASSCF) & -152.2884(7) & -150.2502(6) & -225.3776(8) &100.4(24) & 144.4(27) & &  \\ \hline
+\hline
+\end{tabular}
+}
+\caption{Results using the experimental geometries given in (\ref{eq:exp_geo}) for various methods and basis sets together with the extrapolated results to the complete basis set (CBS) limit. For all AFQMC(CASSCF), NEVPT2, and CASSCF calculations, (8e, 6o) and (12e, 9o) active spaces were used for singlet and triplet molecular oxygen, and ozone, respectively. All other calculations were done in the canonical MO basis (R(O)HF). For ozone, the experimental value was corrected by the ZPVEs as described in the main text. Tables were taken from \cite{amsler2023classical}.}
+\label{tab:results_exp_geo}
+\end{table}
+
+
+
+\begin{table}[h!]
+\centering 
+\resizebox{\textwidth}{!}{
+\begin{tabular}{p{30mm}p{25mm}p{25mm}p{25mm}p{20mm}p{20mm}p{0mm}p{0mm}}
+\hline
+Method &  $E(\ce{^3O_2})$ [Ha] & $E(\ce{^1O_2})$ [Ha] & $E(\ce{O_3})$ [Ha] & $\Delta E (\ce{^1O_2})$ [kJ/mol] & $\Delta E (\ce{O_3})$ [kJ/mol]       &  &   \\
+\hline\hline
+Experiment \cite{krupenie1972spectrum, weast1983} & - & - & - & 94.7 & 143.2 \\
+\hline\hline
+R(O)HF & -149.6649 & -149.6018 & -224.3578 & 165.6  & 366.4 & &  \\ \cline{1-8}
+UPBE & -150.2568  & -150.2428 & -225.3366 & 36.9 & 127.6 & &  \\ \cline{1-8}
+UB3LYP & -150.3377 & -150.3215 & -225.4366 & 42.4 & 183.5 & &  \\ \cline{1-8}
+CCSD(T) & -150.2344 & -150.1869 & -225.2929 & 124.7 & 154.0 & &  \\ \cline{1-8}
+CASSCF & -149.7632 & -149.7301 & -224.5867 & 87.0 & 152.8 & &  \\ \cline{1-8}
+NEVPT2 & -150.1928 & -150.1576 & -225.2378 & 92.4 & 134.7 & & \\ \cline{1-8}
+AFQMC(CASSCF)& -150.2356(4)  & -150.1957(3) & -225.2974(4) & 104.9(12) & 147.1(14) & &  \\ \hline
+\hline
+
+\end{tabular}
+}
+\caption{Results using the DFT-optimized geometries given in (\ref{eq:dft_geo}) for various methods using the def2-QZVPP basis set for DFT (B3LYP and PBE) and cc-pVQZ otherwise. For all AFQMC(CASSCF), NEVPT2, and CASSCF calculations, (8e, 6o) and (12e, 9o) active spaces were used for singlet and triplet molecular oxygen, and ozone, respectively. All other calculations were done in the canonical MO basis (R(O)HF). For ozone, the experimental value was corrected by the ZPVEs as described in the main text. Table was taken from \cite{amsler2023classical}.}
+\label{tab:results_dft_geo}
+\end{table}
+
+
+
+\section{Appendix to Chapter \ref{chap:qnlp}}
+\subsection{Hyperparameters}\label{sec:apn-hyp}
+
+The following hyperparameters were taken from Ref.~\cite{tiblias2025an}.
+
+A randomized search is performed to find the best hyperparameters for each model and data set. $50$ configurations, train them on the task, and evaluate their performance on the development set. To avoid overfitting, we perform early stopping on the training if the development loss does not decrease for five consecutive epochs. Throughout all experiments, we utilize the \textit{Adam} optimizer provided by PyTorch. Since our largest model, HAM, has at most $\sim500k$ parameters (dictated by the embedding space), we limit the random search to configurations with fewer than or equal to the number of parameters to ensure a fair comparison. In practice, we find RNNs, LSTMs, and CNNs perform very well with as few as $40k$ parameters. What follows is a list of all hyperparameters we evaluated:
 \begin{itemize}
     \item \textbf{Batch size:} $[64, 128, 256]$;
     \item \textbf{Learning rate:} $[10^{-2}, 10^{-3}, 10^{-4}]$; 
@@ -233,9 +386,9 @@ A randomized search is performed to find the best hyperparametrs given per model
     \item \textbf{Circuit:} The ansatz $U_\theta$ used to prepare state $\psi$. We experiment with three hardware-efficient ans\"atze inspired by circuits from \cite{Sim2019circ} and illustrated in Figure \ref{fig:ansz}. These ans\"atze are designed to explore different levels of entanglement (the quantum counterpart of correlation) and gate complexity. The first is a non-entangling circuit composed of single-qubit rotations, exhibiting linear complexity with respect to the number of qubits. The second is an entangling circuit arranged in a ring configuration, also scaling linearly in gate count. The third is an all-to-all entangling circuit, which scales quadratically. $[\texttt{Baseline, Ring, All-to-all}]$.
     \item \textbf{\# Pauli strings:} For SIM, the number of Pauli strings composing the Hamiltonian $[50, 100, 500, 1000]$.
 \end{itemize}
-Tables \ref{tab:hyp-baseline} and \ref{tab:hyp-ham} shows the final selection of best-performing hyperparameters used in the main experiment of Section \ref{sec:set}.
+Tables \ref{tab:hyp-baseline} and \ref{tab:hyp-ham} show the final selection of best-performing hyperparameters used in the main experiment of Section \ref{sec:qnlpexpres}.
 
-\begin{figure}[t]
+\begin{figure}[h!]
     \centering
     % Circ base
     \begin{subfloat}[] {
@@ -280,11 +433,11 @@ Tables \ref{tab:hyp-baseline} and \ref{tab:hyp-ham} shows the final selection of
     Circuit ansätze explored in the experiment. For the sake of visualization, the image shows ansätze for $n=3$. Since the experiments use different values, we extend the patterns to act on more qubits. 
     (a) Non-entangling ansatz
     (b) Ring ansatz
-    (c) All-to-all ansatz. (b) and (c) are respectively circuit 14 and 6 from~\cite{Sim2019circ}}
+    (c) All-to-all ansatz. (b) and (c) are respectively circuit 14 and 6 from~\cite{Sim2019circ}. This figure was taken from Ref.~\cite{tiblias2025an}.}
     \label{fig:ansz}
 \end{figure}
 
-\begin{table*}
+\begin{table*}[h!]
 \centering
 \begin{tabular}{lccc}
 \toprule
@@ -342,6 +495,11 @@ CIFAR2 & 64 & $10^{-4}$ & 4 & 32 & 5 \\
 Fashion & 64 & $10^{-3}$ & 4 & 16 & 3 \\
 \bottomrule
 \end{tabular}
+\caption{Best hyperparameters across all baseline models and tasks}
+\label{tab:hyp-baseline}
+\end{table*}
+\begin{table*}
+\centering
 \begin{tabular}{lccccc}
 \toprule
 \multicolumn{5}{c}{\textbf{CIRC}} \\
@@ -355,11 +513,6 @@ CIFAR2 & 64 & $10^{-3}$ & \texttt{Baseline} & 8 \\
 Fashion & 256 & $10^{-3}$ & \texttt{Ring} & 32 \\
 \bottomrule
 \end{tabular}
-\caption{Best hyperparameters across all baseline models and tasks}
-\label{tab:hyp-baseline}
-\end{table*}
-\begin{table*}
-\centering
 \begin{tabular}{lccccc}
 \toprule
 \multicolumn{5}{c}{\textbf{HAM}} \\
@@ -395,7 +548,7 @@ CIFAR2 & 64 & $10^{-3}$ & \texttt{All-to-all} & 32 & 1000 \\
 Fashion & 256 & $10^{-2}$ & \texttt{All-to-all} & 8 & 1000 \\
 \bottomrule
 \end{tabular}
-\caption{Best hyperparameters across all Hamiltonian models and tasks}
+\caption{Best hyperparameters across all Hamiltonian models and tasks. This table was taken from Ref.~\cite{tiblias2025an}.}
 \label{tab:hyp-ham}
 \end{table*}
 

@@ -10,106 +10,805 @@
 % \caption{Overleaf logo}
 % \end{figure}
 
-\chapter{Applications of VQE I: Chemistry}
+\chapter{Applications of VQE I: Chemistry}\label{chap:chem}
 
-\section{Introduction: The Why of quantum computing for quantum chemistry}
+In the previous chapter, we discussed the working principles of VQE and how such an algorithm could be implemented on a measurement-based quantum computer respecting determinism. In this chapter, we highlight potential application opportunities of VQEs in quantum chemistry. Due to its inherent quantum nature, quantum chemistry, especially the ground state problem in electronic structure theory, has been deemed the most promising candidate for practical quantum advantage \cite{cao2019quantum}. Although the ground state problem itself is shown to be in QMA \cite{kempe2004complexity}, i.e., the NP analogue to BQP, there is a highly synergistic relationship between quantum computing and quantum chemistry, with the very first experimental NISQ proposals also being conducted in the chemistry domain \cite{peruzzo2014variational}. 
 
-\begin{itemize}
-    \item In the last chapter we discussed working principles f VQE and how such algorithm could be implemented on a measuremnt-based quantum cmoputer respecting determinism. We also gave some examples as benchmark (list what was studied in mbqc paper)
-    \item Next, we want to dive deeper what applications could be given such 
-    \item  check intro of paper 1
-\end{itemize}
-
-\section{Introduction to Quantum computational chemistry}
+In this chapter, we present the two works \cite{amsler2023classical} and \cite{kiser2024classical}, which have been explored collaboratively within the \ac{QUTAC} working group, with the aim of demystifying the applicability of a hybrid algorithm proposed by Huggins et al.  \cite{huggins2022unbiasing}, the quantum-enhanced auxiliary-field Quantum Monte Carlo algorithm (QC-AFQMC). This algorithm does not utilize the direct energy estimate from VQE, but instead uses the prepared VQE state as a trial wave function for a subsequent Quantum Monte Carlo algorithm. In our first publication \cite{amsler2023classical}, we investigate whether this algorithm delivers performance improvements over other methods and variants of \ac{AFQMC} for test systems, which is answered positively. In the second study \cite{kiser2024classical}, we discuss the effect of shot noise on the quantum-obtained data and the total costs of performing QC-AFQMC, including classical postprocessing costs. We reveal that these costs, although efficient, are prohibitively large for systems so large that they are intractable classically and require a quantum computer to simulate.
+To deliver a self-contained thesis, this chapter also includes an introduction to the discipline of quantum chemistry and how quantum chemistry using quantum computers is typically approached, which we start with.
 
 
-
-\begin{itemize}
-    \item the electronic structure hamiltonian and the Fock space
-    \item second quantization
-    \item cholesky based decomposition of the ahmiltonian
-    
-    \item mapping to qubits: Jordan Wiegner
-    \item connection to matchgate, fermionic Gaussian
-    
-    \item AFQMC fundamentals, fermionic sign problem
-    \item Projector methods in imaginary time, Hubbard–Stratonovich transformation, random walkers (Slater determinants), local energy estimator, and the phase/sign problem; phaseless approximation and role of the trial state
-
-    \item VQE for quantum chemistry
-    \item Overview of variational principle, ansätze (e.g., UCC), and measurement optimization strategies (grouping, basis rotations, classical shadows) to lower measurement counts on NISQ.
-
-    \item Classical shadows for quantum chemistry
-    \item Core idea of classical shadows (randomized measurements) and why they are attractive when many observables of the same state are needed; introduce Clifford, matchgate, and orbital-rotation shadows; emphasize variance/shot-noise behavior and reuse of measurements.
-
-    \item QC‑AFQMC (using quantum trial states in AFQMC)
-    \item Where the quantum state enters: overlaps needed for importance sampling (overlap ratio), force-bias evaluation, and local energy; scaling and factorization to $O(N^3)$ for local energy with modern compression; total overlap burdens across walkers/blocks/steps; mean-field subtraction requires trial-state expectations.
-    \item Practical measurement challenge and post-processing costs; with classical-shadow schemes the classical post-processing for QC‑AFQMC overlap estimation can scale as $O(N^9)$ per walker end-to-end (algorithmic workflow perspective).
-    
-\end{itemize}
-
-This section aims at a complete yet minimal introduction to the electronic structure theory maianly studied in quantum chemistry in so-called second-quantized formulation with the aim to cover all concepts to makes the motivation, methods and results of the publications \todo{cite bith paper} comprehensive. This will include a minimalistic introduction to quantum chemistry and is formulation, the expectation the field has on quantum computer, and how such problems are mapped onto the quantum computer. A quick introduction on what a quantum computer is, measuremnts are done or algorithms as the VQE is given \todo{ref the intro}. For more details on electronic structure theory, we recommend the study of Refs.~\cite{helgaker2014molecular, szabo2012modern}, or more taiored towards quantum computing practitoiners Refs. \cite{mcardle2020quantum, cao2019quantum}.
+\section{Introduction to Quantum Computational Chemistry}\label{sec:introquantumchem}
 
 
-\subsection{The electronic structure theory in second quantuization}
+This section provides a concise introduction to electronic structure theory, primarily studied in quantum chemistry using the second-quantized formulation. The goal is to cover all concepts necessary to make the motivation, methods, and results of the publications \cite{amsler2023classical} and \cite{kiser2024classical} comprehensive. This will include a brief overview of quantum chemistry and its formulation, the expectations for quantum computing in this field, and how these problems are mapped onto quantum computers. A short introduction to quantum computers, the measurement processes involved, and algorithms such as the Variational Quantum Eigensolver (VQE) is already presented in Sec.~\ref{sec:quantum101} and Sec.~\ref{sec:vqe}. Each aspect mentioned in the following represents its own research field, deserving more extensive discussion, which, however, exceeds the scope of this thesis. References for further details are provided, with popular textbooks on electronic structure theory being \cite{helgaker2014molecular, szabo2012modern}. A review tailored for quantum computing practitioners, which also summarizes quantum computing for quantum chemistry practitioners, is presented in Refs. \cite{mcardle2020quantum, cao2019quantum}. The author found lecture notes from the summer school conducted by the Martinez group particularly helpful in drafting this introduction, following their notation \cite{robnote12018, robnote22018, robnote32018}.
+
+\subsection{The Electronic Structure Problem in Second Quantization}
+
+The aim of quantum chemistry is to predict and understand the behavior of chemical systems based on first principles, specifically quantum mechanics. Whether calculating molecular properties or estimating reaction pathways, the fundamental problem to solve is the electronic structure of the molecule, which is crucial for understanding how molecules interact and react.
+
+A molecule consists of positively charged nuclei and negatively charged electrons, both governed by the law of quantum mechanics. Such a molecular system is described by the time-dependent molecular wave function:
+\begin{equation}
+    \ket{\Phi} = \Phi (r_1^A, \dots, r_{N_A}^A,x_1, \dots, x_{N_i},t) , 
+\end{equation} where the fist $N_A$ indices indicate the nuclei, and then $N_i$ electrons. While nuclei are localizable and can be represented solely by their spatial coordinates $r_i^A$, electrons require both spatial coordinates and spin for complete characterization, represented as $x_i = (r_i, s_i)$. Electrons are fermions with spin $1/2$, and are antisymmetric under particle exchange
+\begin{equation}
+    \Phi(\dots, x_i, \dots, x_j, \dots) = - \Phi(\dots, x_j, \dots, x_i, \dots).
+\end{equation}
+The evolution of the molecular wave function is governed by the molecular Hamiltonian:
+\begin{equation}\label{eq:fullham}
+    H = -\sum^{N_A}_A \frac{\hbar^2}{2 m_A} \nabla^2_A - \sum^{N_i}_i \frac{\hbar^2}{2 m_e} \nabla^2_i + \sum^{N_A}_{A<B} \frac{Z_A Z_B}{4 \pi \epsilon_0 r_{AB}} - \sum^{N_i}_i \sum^{N_A}_{A} \frac{e Z_A}{4 \pi \epsilon_0 r_{iA}} + \sum^{N_i}_{i<j} \frac{e^2}{4 \pi \epsilon_0 r_{ij}}.
+\end{equation} The first two terms represent the kinetic energy, with $N$ denoting the number of each type of particle in the system, and $\nabla^2$ being the Laplacian operator in  $\mathbb{R}^3$, $r_{ij}$ denotes the Euclidean distance between the coordinates of particles $i$ and $j$ in $\mathbb{R}^3$. The mass of each particle is represented by $m$, $Z_A$ is the charge of nucleus $A$, $e$ is the charge of the electron, $\hbar$ is the reduced Planck's constant $\hbar = \frac{h}{2 \pi}$, and $\epsilon_0$ is the vacuum permittivity. The third to fifth terms in Eq.~\ref{eq:fullham} represent nuclear-nuclear repulsion, nuclear-electron attraction, and electron-electron repulsion, respectively.
+
+Nuclei are substantially heavier than electrons -- thus, in the context of many tasks such as the Hamiltonian ground state problem, where one seeks the quantum eigenstate with the smallest eigenvalue for a given Hamiltonian, it is sufficient to treat the nuclei as static objects that give rise to static parameters in the interaction terms and an independent external bias potential term in the electronic Hamiltonian:
+\begin{equation}
+        H =  - \sum^{N_i}_i\nabla^2_i - \sum^{N_i}_i \sum^{N_A}_{A} \frac{Z_A}{r_{iA}} + \sum^{N_i}_{i<j} \frac{1}{r_{ij}}.
+\end{equation} This modification of the molecular Hamiltonian is called the Born-Oppenheimer approximation.
+Note that we have introduced Hartree atomic units, where fundamental constants $\hbar = m_e = e = 4\pi\epsilon_0 = 1$, such that computed quantities from this Hamiltonian become approximately unity. In these units, energies are measured in Hartree ($\sim$ $27.2$ eV) and distances in Bohr ($\sim$ $0.529\times 10^{-10}$m). This choice is not only numerically beneficial but also makes the formulas more readable by eliminating physical constants from the equations.
+
+With the Hamiltonian established, a chemist's goal is to solve the time-independent Schrödinger equation
+\begin{equation}
+    H \ket{\Psi_I} = E_I \ket{\Psi_I}, 
+\end{equation} which is, however, analytically intractable for systems with more than one electron (i.e., beyond the hydrogen atom) due to the coupled differential equations arising from the electron-electron interaction terms. Fortunately, numerous standardized numerical approaches have been developed to approximately solve the electronic Schrödinger equation with high precision, which we will examine systematically. 
+
+Let us first examine how multi-electron molecular wave functions can be systematically constructed from single-electron wave functions in a spin-independent external potential $V_1$. The electron possesses the spin quantum number $s = 1/2$ and two possible spin-projection values  $s_z = \pm 1/2$. Since the total spin operator $s^2 = s_x^2 + s_y^2 + s_z^2$ and $s_z$ commute, the spin state can be expressed in a common orthonormal eigenbasis:
+\begin{align}
+    s^2 \ket{\omega} &= s(s+1) \ket{\omega} \\
+    s_z \ket{\omega} &= s_z \ket{\omega} , 
+\end{align} where for a general particle the spin number $s$ can span all non-negative integers and half-integers, and the spin-projection number spans $s_z = { -s, -s +1, \ldots, s-1, s}$. For a single electron, this yields two spin states:
+\begin{align}
+    \ket{\alpha} &= \ket{s = 1/2, s_z = + 1/2} \\
+    \ket{\beta} &= \ket{s = 1/2, s_z = - 1/2} \\
+\end{align} with $\braket{\alpha}{\beta} = 0$.
+
+The solution to the time-independent single-electron problem in an external potential $V_1$ is 
+\begin{align}
+        H_1 \ket{\psi_I(x_1 = (r_1,s_1))} &= E_I \ket{\psi_I(x_1)} \\
+        H_1 &= - \frac{1}{2} \nabla^2_1 + V_1 \, ,
+\end{align} which also gives rise to an orthonormality relation among two solutions $\braket{\psi_I}{\psi_J} = \delta_{I,J}$. Since the electronic structure Hamiltonian contains no spin-related terms, only operators acting on spatial coordinates, it commutes with both $s^2$ and $s_z$, allowing simultaneous eigenstates of all three operators.
+Such a basis is called a \textit{spin-orbital}, expressed as a direct product of the spatial orbital $\ket{\phi_I} = \phi_I(r_1)$ and the spin state $\ket{\omega_I} = \omega(s_1)$
+\begin{equation}
+    \ket{\psi_I} = \ket{\phi_I}\ket{\omega_I},
+\end{equation} where $I = (p, \sigma)$, with $p$ the spatial label and $\sigma$ the spin state (either $\alpha$ or $\beta$). An interesting consequence is that the orthogonality of $\alpha$ and $\beta$ spins forces the Hamiltonian to have a block structure where only $\alpha$-$\alpha$ and $\beta$-$\beta$ blocks are non-zero.
+
+This single-electron framework can be extended to a fictitious scenario of multiple ``electrons''  that do not interact with each other, each contributing a kinetic term $- 1/2 \nabla^2_i$ under some external potential $V_i$. The Schrödinger equation becomes
+\begin{equation}
+    H \ket{\Psi_I} = (- \frac{1}{2} \sum \nabla^2_i + \sum_i V_i) \ket{\Psi_I} = E_I \ket{\Psi_I}.
+\end{equation} Since this is merely a sum of single-electron Hamiltonians, the solution to the non-interacting multi-electron equation is given by a direct product of single-electron solutions $\ket{\psi_I}$s
+\begin{equation}
+    \ket{\Psi_I} = \Pi_{i}^{N_i} \ket{\psi_{I_i}}, 
+\end{equation} where $I = (I_1, \dots, I_{N_i})$. Such wave functions are called \textit{Hartree-products}.
+The Hartree product ignores two crucial aspects we would expect: first, antisymmetry with respect to particle exchange, and second, the Pauli exclusion principle forbidding electrons from occupying the same spin-orbital. These requirements are implemented by representing the solution wave function as a sum of all permutations of electrons with correct parity. A mathematically elegant expression for this is the  \textit{Slater determinant}
+\begin{equation}
+    \ket{\Psi_I} = \frac{1}{\sqrt{N_i!}} \begin{vmatrix}
+        \psi_{I_1} (x_1) &  \psi_{I_2} (x_1) & \dots  & \psi_{I_{N_i}} (x_1) \\
+        \psi_{I_1} (x_2) &  \psi_{I_2} (x_2) & \dots  & \psi_{I_{N_i}} (x_2) \\
+        \vdots & \vdots & \ddots & \vdots \\
+        \psi_{I_1} (x_{N_i}) &  \psi_{I_2} (x_{N_i}) & \dots  & \psi_{I_{N_i}} (x_{N_i}) \\
+    \end{vmatrix}.
+\end{equation}
+Swapping two rows or columns corresponds to exchanging two particles, introducing a sign flip in the determinant. Additionally, if two electrons occupied the same spin-orbital, this would result in two identical columns, causing the determinant to vanish. The number of such determinants scales factorially. A system with $N_p$ spatial orbitals has $2N_p$ spin-orbitals, and with $N_i$ electrons there are 
+\begin{equation}
+    \#_{dets} = \binom{2 N_p}{N_i}.
+\end{equation} A shorthand notation represents determinants by their occupied spin-orbitals. For example, with $N_p = 2$ and $N_i=2$, if the first two spin-orbitals are occupied, the notation would be $\ket{1100}$, indicating the first orbital is doubly occupied (both $\alpha$ and $\beta$ electrons).
+
+Returning to the Schrödinger equation for the actual mutually interacting multi-electron system
+\begin{equation}
+    ( -\frac{1}{2} \sum_i \nabla^2_i + \sum_i V_i + \sum_{i<j} V_{ij} ) \ket{\Psi_I} = E_I \ket{\Psi_I},
+\end{equation} where $V_{ij}$ represents the Coulomb interaction between electrons, the solution cannot be expressed as a single Slater determinant because the interaction term couples different determinants. A commonly successful approach is to variationally optimize the spatial orbitals of a single Slater determinant
+\begin{equation}
+    \min_\phi \bra{\Phi_0} H \ket{\Phi_0} \approx E_0 =: E_\mathrm{HF}.
+\end{equation} This yields the best single Slater determinant approximation to the electronic structure problem, known as the \textit{Hartree-Fock method}, or equivalently the \textit{mean-field method}, since each electron interacts with an average field generated by all other electrons rather than through explicit pairwise interactions. When it is assumed that $\alpha$ and $\beta$ electrons occupy the same spatial orbitals, this is called \ac{RHF}, else \ac{UHF}. While this minimization is known to be NP-complete \cite{whitfield2012computational}, it works remarkably well in practice with heuristic scaling of $\mathcal{O}(N_p^4)$. This thesis does not cover the depth that Hartree-Fock methods deserve, but we refer to the following references for formal treatment and numerical algorithms \cite{hartree1928the, fock1930naherungsmethode, davidson1975the, pulay1980convergence}.
+
+A byproduct of this optimization is the set of $N_p$ molecular orbitals, which generates the optimal single-Slater determinant by optimizing coefficients of linear combinations from a chosen set of orbital basis functions. The design and selection of accurate basis functions is an art in itself \cite{lehtola2019a, mahamiya2022benchmarking}. For preliminary calculations, especially when computational resources are constrained, it is common to use the ``minimal basis'' STO-3G, where three Gaussian-type orbitals are fitted to one Slater-type orbital \cite{slater1930atomic}. This finite Gaussian approximation introduces systematic bias; therefore, correlation-consistent methods have been developed that successively add more basis functions to the basis sets (with names like cc-pVDZ for correlation-consistent polarized valence double-zeta) that allow empirical extrapolation for estimating the complete-basis limit \cite{dunning1989gaussian}.
+
+The approaches to bridge the gap between the Hartree-Fock solution and the exact solution to the Hamiltonian ground state problem are termed ``post-Hartree-Fock methods. The Hartree-Fock method is a variational technique where the ansatz represents only a single Slater determinant consisting of parametrized linear combinations of orbital functions.
+
+A strategy to obtain a more expressive ansatz involves including multiple Slater determinants weighted by parameters to optimize. The most accurate approach for solving the ground state problem constructs an ansatz containing all Slater determinants of the considered particle subspace. This is called \ac{FCI}, which in principle converges to the exact solution up to the choice of basis set, although it requires a factorially scaling parameter set. The energy gap between the FCI solution and the Hartree-Fock solution is called the correlation energy
+\begin{equation}
+    E_\mathrm{corr} = E_\mathrm{FCI} -E_\mathrm{HF} .
+\end{equation} In quantum chemistry, it is common to distinguish between static (or strong) correlation, which requires a wave function with nearly equal contributions from several Slater determinants, and dynamic correlation, which refers to cases where the Hartree-Fock solution is the leading component but with small contributions from many excited states \cite{benavides2017towards}. Note that the Hartree-Fock wave function refers by definition to the lowest-lying occupied state, so any other Slater determinant of the particle subspace would be an excited state relative to it.
+
+While an exact solution of the ground state problem should address both types of correlations, heuristically it is said that dynamical correlations are captured via perturbative methods such as Møller-Plesset \cite{moller1934note} or single-reference methods such as coupled-cluster \cite{cizek1966on}, while static correlations require multi-reference methods that are computationally more resource-intensive. Let us examine coupled-cluster theory in detail, since the construction of its wave function ansatz will later help us understand the construction of some ansätze implemented on quantum computers. 
+One can seek a compromise between FCI and Hartree-Fock by including only a polynomially large number of Slater determinants in the ansatz. The variant where such Slater determinants $\ket{\Psi_i}$ are given as a parametrized linear superposition
+\begin{equation}
+    \ket{\Psi_{CI}} = \sum_n c_i \ket{\Psi_i},
+\end{equation} is called configuration interaction. Hence, the variant including all Slater determinants is termed full configuration interaction. An issue with truncated CI choices is that this method is not size-extensive, e.g., the wave function of two atoms separated in the non-interacting limit cannot be correctly described. Instead, \ac{CC} employs a non-linear ansatz of Slater determinants
+\begin{equation}
+    \ket{\Psi_{CC}} = e^T \ket{\Psi_{HF}},
+\end{equation} where $T$  is the excitation operator of the following form \cite{taube2006new}
+\begin{align}\label{eq:cc}
+    T &= T_1 + T_2 + T_3 + \dots \\
+    T_n &= \frac{1}{(n!)^2} \sum_{i,j,k,\dots}\sum_{a,b,c,\dots} t^{abc\dots}_{ijk\dots} \{a_a^\dagger a_i a_b^\dagger a_j a_c^\dagger a_k \dots \},
+\end{align} where $i,j,k,\ldots$ are indices of occupied spin-orbitals of $\ket{\Psi_{HF}}$, $a,b,c,\ldots$ are unoccupied orbitals, and $t^{abc\dots}_{ijk\dots}$ are the parameters to be optimized. Eq.~\ref{eq:cc} is already formulated in the second quantization; the operators $a$ and $a^\dagger$ will be introduced just below in Sec.~\ref{sec:secquant}. $T_1$ contains all possible single excitations of $\ket{\Psi_\text{HF}}$, $T_2$ all double excitations, and so forth. Since these excitations are applied to a single reference state $\ket{\Psi_{HF}}$, this is called a single-reference method. We call \ac{CC} where we truncate the excitation operator at $T_2$ \ac{CCSD}. The ``gold-standard''  of quantum chemistry refers to CCSD(T), which is CCSD with additional contributions from triple excitations considered through perturbation theory \cite{bartlett2012coupled}. 
+The evaluation of CC is computationally tractable because the effective Hamiltonian evaluated during CC has a closed-form \ac{BCH} expansion when the reference state is a single determinant \cite{romero2018strategies,helgaker1997basis}
+\begin{equation}
+    e^{-T} H e^{T} = H + [H,T] + \frac{1}{2} [[H,T],T] + \frac{1}{3!} [[[H,T],T],T] +\frac{1}{4!} [[[[H,T],T],T],T].
+\end{equation} For instance, CCSD(T) scales as $\mathcal{O}(N_p^6)$.  A caveat of CC is that it is not a variational method; $e^T$ is not unitary because $T$, a sum of creation and annihilation operators, is not anti-Hermitian. Unitary versions of CC have also been explored, namely \ac{UCC} \cite{taube2006new}. Here, instead of just $T$, we place the anti-Hermitian $T-T^\dagger$ in the exponent to obtain a unitarized version of the ansatz \cite{taube2006new, romero2018strategies}
+\begin{equation}
+    \ket{\Psi_{UCC}} = e^{T-T^\dagger} \ket{\Psi_{HF}}.
+\end{equation} This choice, however, renders the \ac{BCH} expansion infinite since it contains commutators $[T,T^\dagger]$ that do not terminate \cite{romero2018strategies}. A specialized computer that implements unitary operations efficiently would be advantageous here.
+Static correlations are better treated via multi-reference methods, such as the aforementioned FCI. A resource-adapted version of FCI is \ac{CASCI}.  The idea is to divide the spin-orbitals of the system into three categories:
+\begin{equation}
+    \ket{\Psi} = \underbrace{\ket{11\dots11}}_\text{core space} \otimes \underbrace{\ket{11\dots00}}_\text{active space} \otimes \underbrace{\ket{00 \dots 00}}_\text{virtual space}.
+\end{equation} The intuition is that the energetically low-lying core orbitals are doubly occupied throughout the computation, while the energetically high-lying virtual space remains unoccupied. Then, instead of building a parametrized superposition of all spin-orbitals of the molecule, only the \textit{active space} is treated as such. This reduces the considered determinants to
+\begin{equation}
+    \#_\text{dets CASCI} = \binom{M}{N_\alpha}\cdot\binom{M}{N_\beta},
+\end{equation} where $M$ is the number of spatial orbitals in the active space, and $N_\alpha, N_\beta$ are the numbers of $\alpha$ and $\beta$ electrons inside the active space. Another popular method is \ac{CASSCF}, which essentially conducts a Hartree-Fock calculation on multiple Slater determinants, in the case of CASSCF, on all Slater determinants of the active space in the correct particle subspace. The choice of how to divide the spin-orbitals into these three spaces can incorporate chemical prior knowledge, for instance, if bond-breaking at certain sites is known \cite{levine2021cas}, or use arguments derived from natural orbital occupation numbers. Natural orbitals are eigenvectors of the one-particle reduced density matrix (1-RDM) (cf. Eq.~\ref{eq:rdms}), and the natural orbital occupation numbers are the corresponding eigenvalues representing the average occupation per natural orbital \cite{helgaker2014molecular}. The idea is to include orbitals with fractional occupation (neither 0 nor 2) in the active space. We note here that tools for automatic active space selection have been greatly advanced by the quantum computational community, since quantum computing, as will be discussed in the next section, is considered to accelerate FCI computations where qubit counts typically scale with the number of considered spin-orbitals. In the NISQ era, with limitations on usable qubits per run, the reduction of spin-orbitals through active space treatment is unavoidable. Recently developed active space selectors include \cite{2025activespacefinder, tarocco2025aegiss}.
+
+
+\subsection{Second-quantized formulation of Quantum Chemistry}\label{sec:secquant}
+
+The formulation of the Hamiltonian and wave function where coordinates are quantized, as discussed above, is called \textit{first quantisation}, while  \textit{second quantisation} is an equivalent formulation that instead quantizes the field by employing antisymmetric annihilation and creation operators acting on occupation number-encoded wave functions. The second-quantized formulation has become more popular than first quantization in computational quantum chemistry and especially quantum computational chemistry \cite{mcardle2020quantum}, since the encoding is more straightforward.
+
+The creation $a^\dagger$ and annihilation operators $a$ act as follows on the occupation number encoded wave function
+\begin{align}
+    a^\dagger_i \ket{n_1, \dots, n_i, \dots} = \begin{cases}
+        \ket{n_1, \dots, 1, \dots}, & \text{if } n_i = 0, \\        0, & \text{otherwise}
+    \end{cases}, \\
+    a_i \ket{n_1, \dots, n_i, \dots} = \begin{cases}
+    \ket{n_1, \dots, 0, \dots}, & \text{if } n_i = 1, \\        0, & \text{otherwise}
+    \end{cases},
+\end{align} and are characterized by their antisymmetric anticommutation relations
+\begin{align}
+    \{ a_i^\dagger, a_j^\dagger \} &= 0, \\
+    \{ a_i, a_j \} &= 0, \\
+    \{ a_i^\dagger, a_j \} &= \delta_{ij}. \\
+\end{align} Instead of enforcing antisymmetric behavior in the wave function, these properties are now intrinsically implemented in the operators.
+
+In this formulation, the electronic structure Hamiltonian becomes \cite{helgaker2014molecular, szabo2012modern}
+\begin{equation}\label{eq:2ndelectronicham}
+    H = \sum_{p,q} h_{pq} a_p^\dagger a_q + \frac{1}{2} \sum_{p,q,r,s} h_{pqrs} a_p^\dagger a_q^\dagger a_r a_s,
+\end{equation}
+where
+\begin{align}\label{eq:molecularintegs}
+    h_{pq} &= \int dx\, \phi^*_p (x) \left( - \frac{1}{2} \nabla^2 - \sum_A \frac{Z_A}{|r - R_A|} \right) \phi_q (x),  \\
+    h_{pqrs} & = \int dx_1\,dx_2\, \frac{\phi^*_p (x_1) \phi^*_q (x_2) \phi_r (x_2) \phi_s (x_1)}{|r_1 - r_2|} .
+\end{align} 
+ The quadratic terms represent the kinetic energy of electrons and their interaction with static nuclei, while the quartic terms represent electron-electron interactions. Wave functions can also be represented as sequences of creation and annihilation operators acting on the vacuum state, e.g., $\ket{1100} = a^\dagger_1 a^\dagger_2 \ket{0000}$. This representation is particularly neat when evaluating expectation values -- since operators are also given as sequences of creation and annihilation operators, evaluating expectation values becomes a matter of reordering. For example, consider evaluating the single-body part of $H$ for a state $a_i^\dagger \ket{0}$:
+\begin{equation}
+            h_{pq} \bra{0}a_i a_p^\dagger a_q a_i^\dagger \ket{0} = h_{pq} [ - \bra{0}a_i a_p^\dagger  a_i^\dagger a_q \ket{0} + \delta_{iq} \bra{0}a_i a_p^\dagger \ket{0}],
+\end{equation} where the first term vanishes since an annihilation operator acts on the vacuum state. The second term evaluates to
+\begin{equation}
+            h_{pq} \delta_{iq} \bra{0}a_i a_p^\dagger \ket{0} =   h_{pq} \delta_{iq}[- \bra{0}a_p^\dagger a_i \ket{0} + \delta_{ip} \braket{0}] = h_{pq} \delta_{iq} \delta_{ip} = h_{ii}.
+\end{equation} Another important observation is that the one- and two-particle reduced density matrices (1- and 2-RDMs) of the wave function of interest are sufficient to compute the expectation value of the Hamiltonian  \cite{helgaker2014molecular}
+\begin{align}\label{eq:rdms}
+        \bra{\Psi}H\ket{\Psi} = \sum_{p,q} h_{pq} \rho^1_{pq} + \sum_{p,q,r,s} h_{pqrs} \rho^2_{pqrs},  \\
+        \rho^1_{pq} = \bra{\Psi}a^\dagger_p a_q\ket{\Psi}, \quad \rho^2_{pqrs} = \bra{\Psi}a^\dagger_p a^\dagger_q a_r a_s \ket{\Psi}.
+\end{align}
+
+To summarize, second quantization transforms evaluations into tensor contractions, making these manipulations amenable to numerical implementations.
+With this brief overview of classical quantum chemistry, what are the pain points that researchers hope to address with quantum computational chemistry?
+
+\subsection{Quantum computational Chemistry}
+
+Before exploring the promises of quantum computing for quantum chemistry, let us first establish that fermionic systems can be encoded efficiently on quantum computers. Qubits on quantum computers are typically spin systems; however, they are distinguishable and do not exhibit inherent fermionic behavior. The fermionic wave function must be encoded computationally, as is done classically.
+
+\subsubsection{Fermionic Encodings}
+The most prominent encoding scheme, although not the most resource-efficient, is the Jordan-Wigner mapping \cite{jordan1928uber, mcardle2020quantum}. The $M$ spin-orbital Slater determinants are represented by an $M$-bit binary string  $\ket{n_1,\dots,n_M}$ with $n_i \in \{0,1\}$, which can be directly represented via computational basis states. All that remains is to identify creation and annihilation operators that modify these binary strings accordingly, with the same action and antisymmetry
+\begin{align}
+    a_p &= Z_1 \otimes \cdots \otimes Z_{p-1} \otimes Q_p, \\
+    a_p^\dagger &= Z_1 \otimes \cdots \otimes Z_{p-1} \otimes Q_p^\dagger, \\
+    Q_p &= \ket{0} \bra{1} = \frac{1}{2}(X + i Y) \\
+    Q_p^\dagger &= \ket{1} \bra{0} = \frac{1}{2}(X - i Y).
+\end{align}
+Here, $Q$ and $Q^\dagger$ implement the change in occupation number, while the $Z$ operators compute the parity by counting occupied spin-orbitals up to the $p$-th position. By maintaining this ordering, no bookkeeping of applied operations is necessary.
+We can substitute the creation and annihilation operators with the above expressions to obtain the electronic structure Hamiltonian in terms of a sum of Pauli strings
+\begin{equation}
+    H = \sum_i \alpha_i P_i,
+\end{equation} where $\alpha_i$ are possibly complex molecular integrals $h_{pq}$ or $h_{pqrs}$ given in Eq.~\ref{eq:molecularintegs}, and $P_i$ are strings of Pauli operators. Note that in Jordan-Wigner encoding, occupation number manipulation is local, but parity retrieval requires a nonlocal operator. A ``dual'' encoding is the parity encoding \cite{seeley2012the}, which performs parity retrieval locally but occupation number manipulation nonlocally. Both encodings may result in Pauli strings with maximal weight $M$. A compromise between these encodings is the Bravyi-Kitaev encoding \cite{bravyi2002fermionic}, which achieves $\log(M)$ scaling of Pauli weights. Alternative encoding schemes reflecting hardware connectivity for the nonlocal operations for minimal compilation overhead have also been proposed \cite{miller2022the, chiew2023discovering}. While we acknowledge the importance of these resource-conscious choices for fermionic encodings, in prototypical settings limited to classically simulable system sizes, we restrict our choice to Jordan-Wigner mapping due to its simplicity.
+
+\subsubsection{Strategies for Quantum Advantages in Quantum Chemistry}\label{subsub:quantumquantumchem}
+
+Already in 2005, Aspuru-Guzik et al. \cite{aspuru2005simulated} discussed the potential for exponential quantum advantage in ground state problems for electronic structure systems leveraging \ac{QPE}. As discussed in Section~\ref{sec:measure}, QPE is a single-shot quantum algorithm that outputs the eigenvalue, or phase, in binary encoding of a unitary operator $U$ given a prepared eigenstate. If the initial state has non-unity overlap with the target eigenstate $\ket{\Psi_\mathrm{init}} = a \ket{E_0} + \sqrt{1-|a|^2} \ket{E_0^\perp}$, QPE becomes probabilistic with success probability scaling as $|a|^2$ \cite{reiher2016elucidating}. In the chemistry setting, we wish to estimate the ground state and its energy, which corresponds to the minimal eigenvalue of the Hamiltonian $H$. This involves two major steps: first, preparation of the initial state, and second, implementation of a unitary with the same spectrum as $H$, typically chosen to be the evolution operator $e^{-iHt}$.
+
+Regarding initial state preparation, the cost for implementing such states has often been neglected \cite{reiher2016elucidating, babbush2015exponentially}. It is assumed that the Hartree-Fock state has sufficiently large overlap with the ground state; then, preparation can be done in $\mathcal{O}(1)$ time since only a computational basis state needs to be generated. However, there have been growing concerns that this assumption might be overly optimistic. Ref.~\cite{lee2023evaluating} hypothesizes that exponential advantage exists in this setting only if quantum preparation of an initial state is efficient while classical heuristics remain exponentially costly, and shows numerical evidence that systems intractable to classical heuristics often exhibit vanishingly small overlaps between their ground states and Hartree-Fock states. We will discuss variational quantum algorithms as a method to prepare initial states with overlaps beyond the Hartree-Fock state later in Sec.~\ref{subsub:quantumquantumchem}.
+
+Most efforts in QPE-based quantum computational chemistry concentrate on efficiently implementing the Hamiltonian in unitary form. Early works implemented the time evolution operation $e^{-iHt}$ using second-order Suzuki-Trotter decomposition \cite{reiher2016elucidating, berry2005efficient, suzuki1976relationship}
+\begin{equation}
+    e^{-iHt} = (\Pi^M_{j=1} e^{-i H_j t/2r} \Pi_{j=M}^1 e^{-i H_j t/2r})^r + \mathcal{O}(t^3/r^2).
+\end{equation} The implicit sum in the exponent consisting of $\mathcal{O}(N^4)$ mostly non-commuting terms makes an exact implementation of the matrix exponential challenging. Discretized evolution is a common technique to mitigate this issue. Each controlled version of the discretized evolution operator, which must be applied to the auxiliary qubits in QPE, can be decomposed into controlled local rotations and CNOTs \cite{whitfield2010simulation}. This results in a T-gate complexity of $\mathcal{O}(N^2S/ \epsilon^{3/2})$, where $S$ is the number of terms in $H$, and the typical target $\epsilon$ is the chemical accuracy of 1.6 mHa. This value is said to match the accuracy of experimental measurements in chemistry \cite{pople1999nobel}. Note that in error-correcting codes for fault-tolerant quantum computing, there is always a set of gates requiring substantially more resources to implement, known as the Eastin-Knill theorem \cite{eastin2008restrictions}. For surface codes, these are T-gates, which is why resource estimates for FTQC algorithms are often given in T-counts.
+
+More modern approaches leverage a technique called \textit{qubitization} \cite{low2019hamiltonian}, which implements $e^{-iHt}$ approximately as a projection of an auxiliary system. A detailed description is beyond the scope of this thesis, but we note that this approach reduces T-gate scaling to $\mathcal{O}(N \lambda / \epsilon)$, where $\lambda$ is the one-norm of the Hamiltonian. Thus, qubitization-based implementations focus on reducing the one-norm by modifying parts of the Hamiltonian that do not act on the considered particle number subspace. Such modifications of the Hamiltonian operator are double factorization \cite{von2020quantum} or tensor hypercontraction \cite{lee2020even}.
+
+Nevertheless, the above QPE-based methods incur high circuit depths due to necessary controlled operations that exceed what is feasible on NISQ hardware. As previously discussed, a class of algorithms that greatly decreases circuit depth requirements through quantum-classical hybrid formalism is the VQE (see Sec.~\ref{sec:vqe} for details). We note here that the first proposed instance of VQE was indeed for chemistry problems, where the quantum computer is employed to implement an ansatz motivated by unitary coupled-cluster theory, which is classically intractable to implement \cite{romero2018strategies, peruzzo2014variational}, but quantumly realizable with only $\log(M)$ qubits, where $M$ is the number of basis states.
+Typically, the UCCSD version is employed, and the unitary operator is discretized via Suzuki-Trotter decomposition \cite{romero2018strategies}
+\begin{align}
+        T &= T_1 + T_2  \\
+        U(\bm{t}) &= e^{T-T\dagger} = e^{\sum_j t_j (\tau_j - \tau^\dagger_j)}\\
+        U(\bm{t}) &\approx (\Pi_j e^{\frac{t_j}{d}(\tau_j - \tau_j^\dagger)})^d .
+\end{align}
+In principle, $U(\mathbf{t})$ could be interpreted as a single layer of an ansatz and repeated. Since $U(\mathbf{t})$ contains all possible single and double excitations, in principle, it is possible to reach the FCI solution on the quantum computer by applying these layers repeatedly.
 
 
 
+\section{Qualitative and Quantitative Benchmarking of Quantum-enhanced Auxiliary-field Quantum Monte-Carlo}
+
+In the following, we will present the works ``\textit{Classical and quantum trial wave functions in auxiliary-field quantum Monte Carlo applied to oxygen allotropes and a $\text{\textit{CuBr}}_2$ model system}'' \cite{amsler2023classical}, published in The Journal of Chemical Physics, and ``\textit{Classical and quantum cost of measurement strategies for quantum-enhanced auxiliary field quantum Monte Carlo}'' \cite{kiser2024classical}, published in New Journal of Physics, which were conducted within the collaborative activities of the Material Sciences Working Group of the Quantum Technology and Application Consortium (QUTAC). We covered the introduction of Quantum computing in general and the NISQ algorithms VQE in Sections \ref{sec:quantum101} and \ref{sec:vqe}. An introduction to how the electronic structure problem is formulated and approached was presented in Section~\ref{sec:introquantumchem}. 
+
+The works \cite{amsler2023classical} and \cite{kiser2024classical} form a duology -- the first work, \cite{amsler2023classical}, was conducted as a proof of concept to understand the methodology of \ac{QC-AFQMC} \cite{huggins2022unbiasing}  and its effectiveness in treating industrially motivated test systems.  \ac{QC-AFQMC} is an instance of \ac{QMC}, where the quantum computer is used to compute a calculation step that is, in principle, classically intractable during \ac{AFQMC} execution.
+We confirm that \ac{QC-AFQMC} can indeed obtain very accurate ground state energies of molecular systems. However, our first study was conducted in the infinite shot limit, assuming we have access to the exact wave function from the quantum computer. The second work, \cite{kiser2024classical}, elucidates whether \ac{QC-AFQMC} remains advantageous in a finite shot setting, which would be the case for experimental implementation. Numerics on the test system show that QC-AFQMC is robust under shot noise; overlap estimations as accurate as $\epsilon=10^{-2}$ already achieve outcomes comparable to the infinite shot limit for small systems. This study also quantifies the overall resource requirements for employing \ac{QC-AFQMC}, including classical postprocessing costs in a noise-free setting, to further assess the industrial applicability of this algorithm.
+
+We begin with an introduction to \ac{AFQMC} and its quantum-enhanced version, illustrating at which steps of \ac{AFQMC} inputs from the quantum computer are required. This is followed by a case study calculating ground state energies of \ce{H4} and relative energies of ozone \ce{O_3} and singlet oxygen \ce{^1O_2} (i.e., total spin $S=0$) with respect to triplet oxygen \ce{^3O_2}, which compares the outcomes of \ac{QC-AFQMC} with \ac{AFQMC} and several other classical ground state approximation methods. This covers the results of the first work \cite{amsler2023classical}. Note that \cite{amsler2023classical} also involves benchmarking on condensed matter systems. Since the author of this thesis was only involved in the study of molecular systems, this aspect will not be addressed here.
+
+\ac{QC-AFQMC} is considered an ideal candidate to benefit from the classical shadow protocol \cite{huang2020predicting}. We will provide an overview of the classical shadows protocol \cite{huang2020predicting} and the specific considered realizations \cite{wan2022matchgate, low2022classical}, reporting on the analytically known upper bounds on variances and numerically estimated variances for specific systems. We will discuss the effect of shot noise in \ac{QC-AFQMC}, which was ignored in the first work. We also report the quantum and classical total costs to run the entire algorithm to assess the practical applicability of \ac{QC-AFQMC}, which concludes the work in \cite{kiser2024classical}.
+
+\subsection{Auxiliary-field Quantum Monte Carlo}
+
+In the previous sections, we discussed mainly ansatz-based methods to approximate the ground state of a system, which requires an optimization routine. There is another class of ground state approximation methods based on \ac{ITE}
+\begin{equation}
+     \lim_{\tau \rightarrow \infty} e^{-\tau H} \ket{\Psi_\mathrm{init}} = \lim_{\tau \rightarrow \infty} \sum_i e^{- \tau E_i} c_i \ket{\Psi_i} = \ket{\Psi_0},
+\end{equation} where $\tau$ is the imaginary time and $\ket{\Psi_\mathrm{init}} =  \sum_i c_i \ket{\Psi_i} $ is some initial state with non-zero overlap with the ground state $\braket{\Psi_0}{\Psi_\mathrm{init}} \neq 0$. The imaginary time causes a decay of amplitudes whose decay rate depends on the eigenvalue $E_i$. Thus, after a sufficiently long imaginary time, the system converges to the state with the smallest absolute value eigenstate.
+Explicitly computing ITE is, however, as complex as solving the Schrödinger equation and computationally prohibitive \cite{lee2022twenty}. AFQMC is an approximate computationally tractable implementation of ITE that replaces the evolution operator with exponentials of one-body operators, i.e., quadratic fermionic operators, over a stochastic auxiliary field. Let us unravel what these words mean by following descriptions from \cite{motta2018abinitio, lee2022twenty, shi2021some}.
+
+The first step is to notice that the electronic structure Hamiltonian (cf. Eq.~\ref{eq:2ndelectronicham}), consisting of quadratic and quartic fermionic terms, can be rewritten as a sum of squares
+\begin{equation}
+    H = v_0 - \frac{1}{2} \sum_{\gamma = 1}^{N_\gamma} v_\gamma^2, 
+\end{equation}
+where $v_0$  is the quadratic one-body term, and  $v_\gamma$ the sum of square decomposition of the quartic two-body term. Such a decomposition can be obtained from a modified Cholesky decomposition \cite{motta2018abinitio}, which iteratively manipulates the quartic tensor to $N_\gamma$ sum of squares
+\begin{equation}
+    h_{pqrs} = \sum_{\gamma = 1}^{N_\gamma} L^\gamma_{pr} L^\gamma_{qs},
+\end{equation} then
+\begin{align}
+    v_\gamma = i \sum_{pq} L^\gamma_{pq} a^\dagger_{p} a_{q}.
+\end{align}
+The discretized ITE by means of the Suzuki-Trotter decomposition becomes \cite{motta2018ab}
+\begin{equation}
+    e^{-\Delta \tau (H-E_0)} = e^{-\Delta \tau (-E_0)} e^{-\frac{\Delta \tau}{2}v_0} e^{\frac{\Delta \tau}{2}\sum_\gamma v_\gamma^2} e^{-\frac{\Delta \tau}{2}v_0} + \mathcal{O}(\Delta\tau^3).
+\end{equation}
+The \ac{HS} transformation allows us to rewrite exponentials of two-body terms into one-body terms coupled to auxiliary fields \cite{motta2018ab}
+\begin{equation}
+    e^{-\frac{\Delta \tau}{2}\sum_\gamma v_\gamma^2} = \prod_\gamma \int \frac{\dd x_\gamma}{\sqrt{2 \pi}}  e^{- \frac{x_\gamma^2}{2}} e^{\sqrt{\Delta \tau} x_\gamma v_\gamma} + \mathcal{O}(\Delta \tau^2),
+\end{equation} yielding together the discretized ITE operator
+\begin{equation}\label{eq:HSITE}
+    e^{-\Delta \tau (H-E_0)} = \int \dd \bm{x} p(\bm{x}) B(\bm{x}) + \mathcal{O} (\Delta \tau^2),
+\end{equation} with
+\begin{align}
+    p(\bm{x}) &= \frac{1}{\sqrt{2 \pi}^{N_\gamma}} e^{- \frac{|\bm{x}|^2}{2}}, \\
+    B(\bm{x}) &= \exp(-\Delta \tau (-E_0 + v_0) + \sqrt{\Delta \tau} \sum_\gamma v_\gamma ).
+\end{align}
+$x_\gamma$ are the so-called auxiliary fields. The attentive reader might have noticed that we subtract from the Hamiltonian the ground state energy $E_0$. This constant shift is necessary because the electronic structure Hamiltonian is non-positive, but we want to shift the entire spectrum such that the ground state also becomes the state with the smallest absolute value. Since $E_0$ is the quantity we are seeking, in the actual implementation, this shift must be replaced by an estimate, preferably a lower bound on the ground state energy.
+
+In AFQMC, the high-dimensional integral in  Eq.~\ref{eq:HSITE} is approximated via a Monte Carlo approach with importance sampling regarding some trial wave function $\ket{\Psi_\mathrm{T}}$ and approximating the global wave function as a weighted statistical sum of $N_w$ ``walker'' states 
+\begin{equation}
+    \ket{\Psi(\tau)} = \sum_{i=1}^{N_w} W_i(\tau) \frac{\ket{\phi_i(\tau)}}{\braket{\Psi_\mathrm{T}}{\phi_i(\tau)}},
+\end{equation} where each walker evolves with
+\begin{equation}
+    \ket{\phi_i(\tau + \Delta \tau)} = B(\bm{x}_i(\tau)) \ket{\phi_i(\tau)},
+\end{equation} where $\bm{x}_i(\tau)$ are $N_\gamma$ random numbers sampled from a Gaussian distribution at time step $\tau$.
+The walker weight is updated as
+\begin{equation}
+    W_i(\tau + \Delta \tau) = W_i(\tau) \cdot O(\bm{x}_i(\tau), \ket{\phi_i(\tau)}),
+\end{equation} where $ O(\bm{x}_i(\tau), \ket{\phi_i(\tau)})$ is the overlap ratio
+\begin{equation}\label{eq:overlapratio}
+     O(\bm{x}_i(\tau), \ket{\phi(\tau)}) = \frac{\bra{\Psi_\mathrm{T}} B(\bm{x}_i(\tau)) \ket{\phi_i(\tau)}}  {\braket{\Psi_\mathrm{T}}{\phi_i(\tau)}}.
+\end{equation} 
+
+For an efficient classical implementation, it is common to choose the trial wave function $\ket{\Psi_\mathrm{T}}$ to be a single Slater determinant, e.g., the Hartree-Fock state, and to initialize the walker state $\ket{\phi_i(0)}$ to be the same state as well. Since $B(\bm{x})$ only contains exponentials of single-particle operators, the evaluation of $B(\bm{x})\ket{\phi_i}$ is efficient and remains so throughout the sampling process because such evolution maps single Slater determinants to single Slater determinants, which is known as the Thouless theorem \cite{thouless1960stability}. Note, however, that continuous rotations possibly result in non-orthogonal Slater determinants. This class of classically efficiently simulable operators and states, i.e., free fermionic states, is known in the quantum computing community as matchgates \cite{jozsa2008matchgates}, which are precisely the Gaussian single-particle operators we are dealing with here in Jordan-Wigner transformed form.
+
+Yet, AFQMC is not a magical formula to solve the ground state problem -- the weights $W_i$ are subject to fluctuating sign and phase, leading to the notorious fermionic sign problem, which causes the sampling complexity to grow exponentially. To remedy this issue, we apply a phase constraint to the overlap
+\begin{equation}
+    O_{\mathrm{ph}}(\bm{x}_i(\tau), \ket{\phi(\tau)}) = \| O(\bm{x}_i(\tau), \ket{\phi(\tau)})\| \cdot \max(0, \cos(\theta_i(\tau))),
+\end{equation} where $\theta_i(\tau)$  is the argument of the complex-valued overlap
+\begin{equation}
+    \theta_i(\tau) = \arg O(\bm{x}_i(\tau), \ket{\phi(\tau)}).
+\end{equation}
+Replacing $O(\bm{x}_i(\tau))$ with $O_{\mathrm{ph}}(\bm{x}_i(\tau))$ adds the phaseless constraint to the walker weights. This treatment, however, comes at the cost of a biased estimator of observables, which approaches zero only as the trial wave function approaches the ground state we are seeking. It is apparent that AFQMC estimates benefit from more accurate trial wave functions, but employing multi-Slater determinants would cause a significant increase in required computational resources since the Thouless theorem no longer applies. Thus, current investigations of trial wave functions are limited to Hartree-Fock or DFT single Slater determinants, \ac{CASSCF}, or linear combinations of small numbers of Slater determinants arising from selected CI methods \cite{lee2022twenty}.  Non-linear superpositions of Slater determinants, such as the CC-wave function, would cause an exponential overhead in the overlap estimations. This is where quantum computing scientists \cite{huggins2022unbiasing} saw an opportunity to contribute, since quantum computers can efficiently prepare such non-linear trial wave functions and efficiently extract overlaps with respect to the walker states, which are single Slater determinants.
+
+Before examining how the quantum computer can help to unbias energy estimates of AFQMC \cite{huggins2022unbiasing}, let us note how expectation values are extracted from the random walk. The global energy estimate at imaginary time $\tau$ is given as the weighted average of local estimates
+\begin{equation}\label{eq:globalenergy}
+    E(\tau) = \frac{\sum_i W_i (\tau) E_{\mathrm{loc}}(\ket{\phi_i(\tau)})}{\sum_i W_i (\tau)},
+\end{equation} where local energy is computed as
+\begin{equation}\label{eq:localenergy}
+    E_{\mathrm{loc}} (\ket{\phi_i(\tau)}) = \frac{\bra{\Psi_\mathrm{T}} H \ket{\phi_i(\tau)}}{\braket{\Psi_\mathrm{T}}{\phi_i(\tau)}}. 
+\end{equation} A common procedure in the random walks is to subtract a  ``force bias'' $\bm{\overline{x}(\tau)}$ to cancel fluctuations in the importance function $B(\bm{x}_i(\tau) - \bm{\overline{x}}_i(\tau))$ \cite{motta2018ab}
+\begin{equation}\label{eq:forcebias}
+    \overline{x}_i(\tau)_\gamma = - \sqrt{\Delta \tau} \frac{\bra{\Psi_\mathrm{T}} v_\gamma \ket{\phi_i(\tau)}}{\braket{\Psi_\mathrm{T}}{\phi_i(\tau)}}.
+\end{equation}
+
+\subsection{Quantum-enhanced Quantum Monte Carlo}
+
+Huggins et al. \cite{huggins2022unbiasing} proposed a hybrid algorithm, called \ac{QC-AFQMC}, where the quantum computer is employed to prepare a classically intractable trial wave function and to compute the overlap terms that feed back to the classical computer to sample new walker states or compute energy estimates. This resulted in the largest quantum chemical calculation conducted on a quantum computer to date (as of 2022), featuring up to 16 qubits and providing much more accurate energy estimates than either VQE itself or AFQMC with a Hartree-Fock trial state. In this section, we cover which observables must be read out from the quantum computer at each step of AFQMC, how frequently they are needed, and how these observables could be efficiently obtained given a quantum trial wave function.
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.6\columnwidth]{images/finite_meas/AFQMCOverlaps_new.pdf}
+    \caption{Visualization of the AFQMC algorithm. Colored terms are steps where we intend to measure overlaps between the trial wave function $\ket{\Psi_\mathrm{T}}$ and walker states $\ket{\phi}$ on a quantum device in QC-AFQMC. We note that the $\mathcal{O}(N^3)$ scaling in the local energy is achieved when exploiting Hamiltonian compression methods, such as double factorization or similar methods \cite{lee2021even,von2021quantum,huggins2021efficient}. Without these compression strategies, it would scale as $\mathcal{O}(N^4)$. This figure is taken from \cite{kiser2024classical}.}
+    \label{fig:afqmcoverlaps}
+\end{figure}
+Overlaps between the trial wave function and the walker states are required in three computation steps within QC-AFQMC (cf. Fig.~\ref{fig:afqmcoverlaps}). First, the weight updates of the walkers include the overlap ratio in Eq.\ref{eq:overlapratio}. In AFQMC software such as \texttt{ipie} \cite{malone2022ipie}, which was employed throughout our studies \cite{amsler2023classical, kiser2024classical}, the total ITE time is divided into blocks, each containing $N_{\Delta \tau}$ time steps $\Delta \tau$. Thus, with $N_w$ walkers and $N_B$ blocks, $\braket{\Psi_\mathrm{T}}{\phi_i (\tau)}$ needs to be evaluated a total of $N_w N_B N_{\Delta \tau} $ times.
+
+Next, for each walker propagation, we must compute the force bias Eq.~\ref{eq:forcebias}, which requires not only the overlap $\braket{\Psi_\mathrm{T}}{\phi_i}$ in the denominator but also the evaluation of $\bra{\Psi_\mathrm{T}} v_\gamma \ket{\phi_i}$. In \cite{huggins2022unbiasing}, it has been shown that this can be reformulated as
+\begin{equation}
+    \bra{\Psi_\mathrm{T}} v_\gamma \ket{\phi_i} = \sum_{p,q} \bra{\Psi_\mathrm{T}} a_q^\dagger a_p \ket{\phi_i} \bra{\phi_i} a_p^\dagger a_q  L_{pq}^\gamma \ket{\phi_i},
+\end{equation} where the overlap of $\ket{\Psi_\mathrm{T}}$ with an excited state of the walker $ \bra{\Psi_\mathrm{T}} a_q^\dagger a_p \ket{\phi_i}$ is evaluated on the quantum computer, while $\bra{\phi_i} a_p^\dagger a_q  L_{pq}^\gamma \ket{\phi_i}$ can be evaluated classically and efficiently via the Slater-Condon rule. Hence, the force-bias calculation results in  $\binom{N}{2} \approx N^2$ overlaps per walker propagation, thus $\mathcal{O} (N^2 N_w N_B N_{\Delta\tau})$ in total.
+
+The third computation step in AFQMC, requiring overlap calculation, is the local energy estimation  Eq.~\ref{eq:localenergy}, where the overlap regarding the Hamiltonian can also be decomposed into one- and two-body terms
+\begin{align}
+    \bra{\Psi_\mathrm{T}} H \ket{\phi_i} = \sum_{p,q} &\bra{\Psi_\mathrm{T}}  a_q^\dagger a_p \ket{\phi_i} \bra{\phi_i} a_p^\dagger a_q H \ket{\phi_i} \\ +& \sum_{p,q,r,s}  \bra{\Psi_\mathrm{T}} a_s^\dagger a_r^\dagger a_q a_p \ket{\phi_i} \bra{\phi_i} a_p^\dagger a_q^\dagger a_r a_s H \ket{\phi_i},
+\end{align} where terms $\bra{\phi_i} a_p^\dagger a_q H \ket{\phi_i}$ and $\bra{\phi_i} a_p^\dagger a_q^\dagger a_r a_s H \ket{\phi_i}$ can be evaluated classically and efficiently following the Slater-Condon rule, while the terms involving the trial state must be extracted from the quantum computer. The overlaps regarding the single-body excitations can be reused from the force bias estimation. The remaining two-body excitations $\bra{\Psi_\mathrm{T}} a_s^\dagger a_r^\dagger a_q a_p \ket{\phi_i}$ consist of $\mathcal{O}(N^4)$ different terms using the typical formulation of the Hamiltonian. However, certain compression methods such as double factorization \cite{lee2020even} can reduce the number of such terms to $\mathcal{O}(N^3)$, which is the optimistic scaling we employ for the two-body terms. The local energy is calculated for each block, resulting in an overall observable count of  $\mathcal{O}(N^3 N_w N_B)$. The above observable counts and an overview of AFQMC computation steps involving overlap estimates are summarized in Fig.~\ref{fig:afqmcoverlaps}. 
 
 
-\section{Quantum‑enhanced AFQMC in industrial chemistry and materials }
+\subsection{\ce{H4} and Oxygen molecules in the infinite shot limit}
 
-\begin{itemize}
-    \item write what we did: proof of concept on challenging test systems
-    \item second paper, demystyfication of classical resources required run qqc-qmc. 
-\end{itemize}
+We apply AFQMC with classical and quantum trial wave functions to calculate (i) ground state energies of square \ce{H4} with varying side lengths and (ii) relative energies of ozone and singlet molecular oxygen compared to triplet molecular oxygen. All AFQMC calculations use \texttt{ipie} \cite{malone2022a} with computational details summarized in the Appendix in Table~\ref{tab:comp_details}. 
 
-\subsection{Proof of concept: da toysystems}
+For Hamiltonian integrals and classical trial wave functions, we use  \texttt{PySCF} \cite{sun2018pyscf}, while \texttt{cirq} \cite{cirq_developers_2022_7465577} generates the VQE trial wave function. Our quantum trial wave function employs a UCCSD-VQE ansatz on a single Slater determinant, initialized with classical CCSD amplitudes  \cite{romero2018strategies} and optimized using \texttt{COBYLA} in \texttt{scipy} \cite{2020SciPy-NMeth}.  We assume access to the exact trial wave function.
 
-Objective and scope (industrial view)
-Test QC‑enhanced AFQMC on representative systems: H4 potential curve; relative energies of 1O2 and O3 vs 3O2; and a quasi‑1D model derived from CuBr2 mapped to a Hubbard-like Hamiltonian.
+\subsubsection{\ce{H4} Square}
+
+Our first benchmark examines \ce{H4} in minimal basis STO-3G with square geometry
+\begin{align*}
+    \ce{H4} :&(\ce{H}, (0, 0, 0)), (\ce{H}, (0, 0, a)),\\ &(\ce{H}, (a, 0, 0)), (\ce{H}, (a, 0, a))\,
+\end{align*}
+where side length $a$ varies from $0.85\text{\AA}$ to $2.5\text{\AA}$ to determine the singlet ground state energy.
+
+The \ce{H4} system serves as a standard benchmark for electronic structure algorithms due to its small size yet significant correlation effects \cite{Anderson1979H4,Gasperich2017dqmcH4,huggins2022unbiasing, baek2022say,lee2022twenty}. Near ground state degeneracy makes both static and dynamic correlations important  \cite{Gasperich2017dqmcH4,Genovese2019dqmcH4}. This system was the first benchmark in the original QC-AFQMC proposal  \cite{huggins2022unbiasing}. Here, we extend this benchmark by calculating the potential energy curve and using a more expensive VQE ansatz. 
+
+We run an eight-qubit VQE circuit for each geometry, then use the optimized VQE output as a trial wave function for AFQMC.
+
+In Fig.~\ref{fig:h4_curve}(top), we show AFQMC energies alongside restricted Hartree-Fock (RHF), VQE, and exact ground state energies.  A single-determinant RHF trial wave function fails to converge AFQMC to the correct ground state \cite{lee2022twenty}. However, the VQE and its AFQMC(VQE) post-processed results appear nearly indistinguishable from FCI at this scale. Fig.~\ref{fig:h4_curve}(bottom) reveals that VQE alone doesn't achieve chemical accuracy for most geometries. A subsequent AFQMC calculation with the VQE state as trial wave function  improves energy estimates, yet even with noiseless simulation and perfect state vectors, chemical accuracy isn't reached for all geometries.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.7\linewidth]{images/afqmc/h4_curve.pdf}
+\caption{(top) Energy surface of the \ce{H4} square with varying side length of the square. For this calculation, a minimal basis STO-3G was used. It should be noted that the FCI and VQE curves are hard to distinguish because of the scale of the y-axis and their similarity to the AFQMC(VQE) results. (bottom) The error of the ground state estimate of plain VQE and AFQMC(VQE) w.r.t.\ the true ground state energy. The error bars stem from the statistical MC errors. This figure is taken from \cite{amsler2023classical}.}
+\label{fig:h4_curve}
+\end{figure}
+
+\subsubsection{Ozone and molecular oxygen}
+\label{sec:relative_energies}
+
+Our second benchmark evaluates AFQMC's performance in calculating relative energies between molecules. We determine relative energies $\Delta E(x)$ of ozone and singlet molecular oxygen versus triplet molecular oxygen. Despite their importance, standard quantum chemistry methods struggle to estimate these energetic differences within chemical accuracy. Previous AFQMC applications to this problem were studied in \cite{lee2020utilizing, shee2019singlet}.
+
+In the following, we compare AFQMC results against standard quantum chemistry methods and experimental values \cite{krupenie1972spectrum, weast1983}, denoting the error with respect to the experiment as $\Delta\Delta E(x)=\Delta E(x)-\langle E(x) \rangle$. For molecular oxygen, experimental values come directly from literature \cite{krupenie1972spectrum}, while for ozone, experimental values refer to zero-temperature formation enthalpies $\Delta H^{\mathrm f}_{0K}(\ce{O_3})$, \cite{weast1983} that inherently include \ac{ZPVE}. To compare with these values, we subtract ZPVE from the formation enthalpy: $\langle E(\ce{O_3}) \rangle = \Delta H^{\mathrm f}_{0K}(\ce{O_3}) - \Delta \mathrm{ZPVE}(\ce{O_3}) $ wherein the ZPVEs are calculated at the density functional theory (DFT) level (B3LYP/def2-QZVPP) resulting in $\mathrm{ZPVE}(\ce{^3O_2})=0.0037 \,  \mathrm{Ha}$ and $\mathrm{ZPVE}(\ce{O_3})=0.0064 \, \mathrm{Ha}$, giving a correction of $\Delta \mathrm{ZPVE}(\ce{O_3}) = 2.2 \,  \mathrm{kJ/mol}$. We note that experimental values of the ZPE exist for the systems studied here \cite{feller2008survey}, yet are unknown in general cases. To study the accuracy of the overall computational pipeline,  we use these computational methods to determine the ZPEs (see Eq.~\ref{eq:cbs}). 
+
+Molecular dioxygen \ce{O2}, in particular singlet oxygen \ce{^1O2} formed by electronic excitation of the abundant triplet oxygen \ce{^3O2}, is a highly reactive species~\cite{Sagadevan2017hydrocarbons, Norbert2008chemrevphotochem} and participates in desired and undesired photochemical reactions ~\cite{Norbert2008chemrevphotochem,Pibiri2018o2chem,Claude2003singletoxygen}, ene reactions~\cite{Daniel2003Ene-reactions}, and organic oxidation reactions. Singlet oxygen is known to damage biological materials \cite{Triantaphylides2008, Davies2003}.
+Ozone (\ce{O3}), another reactive oxygen molecule formed in the atmosphere through \ce{NO_x}-catalyzed photochemical reactions, cleaves C-C double bonds in materials like rubber, causing worldwide damage \cite{Lewis1986}. Their reactivity and abundance make oxygen species compelling targets for high-level quantum chemical methods.
+
+Relative energies of singlet molecular oxygen and ozone with respect to triplet molecular oxygen are of particular interest to predict the stabilities of the respective competing species. More generally, an accurate prediction of energy differences is valuable to estimate thermodynamic and kinetic properties.
+Previous studies \cite{Onishi2018Oxygen,Aleksandr2022CEJ,GRAFENSTEIN1998593,Siebert2001ozone,Holka2010ozone,Dawes2011ozone,Dawes2013ozone} show that singlet oxygen and especially ozone are challenging single-reference electronic structure methods.
+
+We base our calculations on experimental geometries from Refs.~\cite{tanaka1970coriolis, krupenie1972spectrum} and compare with DFT-optimized geometries (B3LYP/def2-QZVPP) \cite{Becke1993b3lyp, Weigend2005def2bases} resulting in the geometries given in (\ref{eq:dft_geo}). Our geometries differ from benchmark geometries in \cite{feller2008survey}. DFT overestimates singlet and triplet oxygen bond lengths by $0.01\text{\AA}$ and $0.003\text{\AA}$, respectively, with respect to the experiment. For ozone, bond length differs by $0.002\text{\AA}$ in the bond length $r_\mathrm{\ce{O}-\ce{O}}$ and in the bond angle $\theta_{\ce{O}-\ce{O}-\ce{O}}$ by $0^{\circ}09'$. Table~\ref{dft-struct-zpe-comparison} shows structural parameters and ZPVEs vary minimally between density functionals (ZPVEs within 1-2 kJ/mol), while HF and MP2 predictions sometimes deviate significantly.
+
+For consistent active spaces, we select orbitals with predominantly $2p$ character, creating (8e, 6o) active spaces for oxygen systems and (12e, 9o) for ozone. \ac{CASSCF} calculations using \texttt{PySCF} \cite{sun2018pyscf} improve orbital selection for AFQMC trial wave functions. These active spaces capture significant correlations while remaining implementable on current quantum hardware.
+
+To benchmark quantum-enhanced AFQMC, we run UCCSD-VQE for ozone in an active space with (12e, 9o). Table~\ref{tab:ozone_vqe} shows AFQMC results using HF, VQE, and CASSCF trial wave functions on experimental geometries. AFQMC with VQE trial wave function produces energies between those with HF and CASSCF trials.
+
+\begin{table}[]
+\begin{tabular}{l|l|l|l}
+& HF [Ha]     & VQE [Ha]  & CASSCF [Ha]   \\ \hline
+AFQMC energy & -225.2901(12) & -225.2940(5) & -225.2966(4) 
+\end{tabular}
+\caption{\label{tab:ozone_vqe}
+AFQMC results on the ground state energy of ozone using a HF, VQE, and CASSCF trial wave function. For all calculations, cc-pVQZ was used as a basis. The VQE trial wave function was obtained using an (12e, 9o) active space built from CASSCF MOs.}
+\end{table}
+
+For relative energy calculations, we assume future quantum computers can generate exact ground state wave functions in small active spaces, which justifies the usage of CASSCF trial wave functions as a proxy of QC-AFQMC for the systems at hand. We calculate energies in cc-pVTZ and cc-pVQZ bases \cite{dunning1989gaussian} following~\cite{helgaker1997basis, lee2020utilizing}. We extrapolate correlation energies to the \ac{CBS} limit using:
+\begin{align}\label{eq:cbs}
+    E_\mathrm{corr}^X = E_\mathrm{corr}^\infty+a X^{-3}\,,   
+\end{align}
+where $a$ is a free parameter and $X$ the cardinal number in cc-pV$X$Z. As in Ref.~\cite{lee2020utilizing}, we only use the total energies from $X=\{T,Q\}$ with the cc-pV5Z RHF/R(O)HF energy as CBS Hartree Fock energy $E_{HF}^\infty$.   
+
+Fig.~\ref{fig:relative_energies} compares results to experimental values. While DFT (B3LYP), CCSD(T), and CASSCF alone don't reach chemical accuracy ($4$ kJ/mol) AFQMC results $\Delta E (\ce{^1O_2})=100.4\pm 2.4$ kJ/mol and $\Delta E (\ce{O_3})=144.4\pm 2.7$ kJ/mol, achieving or close to achieving chemical accuracy with respect to the experimental results.
+
+This comparison, however, requires caution. First, for all calculations, the statistical error of AFQMC itself is of the order of a few kJ/mol, making quantitative comparisons between two calculations less significant. For calculations of chemical reactions with more than one educt and product, the propagation of errors would get more severe, for example, in redox reactions, $\mathrm{S_N2}$ reactions, and many more. 
+Second, our CBS extrapolation only uses two points (cc-pVTZ and cc-pVQZ energies). Future calculations using larger basis sets (cc-pVXZ with $X\geq 5$) should be used to benchmark the CBS result and to improve it further. Also, the concrete extrapolation scheme is a design choice \cite{helgaker1997basis, feller2011effectiveness}, resulting in a potential bias. 
+Using consistent theory levels for ZPVEs and total energies might improve results, but would increase computational cost. Finally, experimental values have their own uncertainties.
+Direct cc-pVQZ results increase AFQMC error by $4$ kJ/mol, see Table~\ref{tab:results_exp_geo}. When comparing to cc-pVQZ results using DFT-optimized geometries as commonly performed in industrial compute pipelines, we find relative energies of $\Delta E (\ce{^1O_2})=104.9\pm 1.2$ kJ/mol and $\Delta E (\ce{O_3})=147.1\pm 1.4$ kJ/mol, comparable to the results obtained with experimental geometries. 
+
+\begin{table}[]
+\begin{tabular}{l|l|l|l}
+& HF [Ha]     & VQE [Ha]  & CASSCF [Ha]   \\ \hline
+AFQMC energy & -225.2901(12) & -225.2940(5) & -225.2966(4) 
+\end{tabular}
+\caption{\label{tab:ozone_vqe2}
+AFQMC results on the ground state energy of ozone using a HF, VQE, and CASSCF trial wave function. For all calculations, cc-pVQZ was used as a basis. The VQE trial wave function was obtained using an (12e, 9o) active space built from CASSCF MOs.}
+\end{table}
+
+
+\begin{figure}[t!]
+    \centering
+    \includegraphics[width=0.7\linewidth]{images/afqmc/relative_energies.pdf}
+\caption{Comparison of the error in relative energies of singlet molecular oxygen and ozone with respect to triplet molecular oxygen using experimental geometries given in Eq.~\ref{eq:exp_geo} with respect to experimental data. We report the results from different computational methods obtained using the cc-pVQZ (for UHF) and def2-QZVPP (for B3LYP) basis set and results extrapolated to the CBS limit (otherwise). The CASSCF and NEVPT2 calculations were carried out in a (12e, 9o) active space for ozone and (8e, 6o) active spaces for singlet and triplet molecular oxygen. The CASSCF wave function was used as a trial wave function in the AFQMC calculation. The error in AFQMC stems from the statistical MC error. This figure is taken from \cite{amsler2023classical}.
+\label{fig:relative_energies}}
+\end{figure}
+
+\subsection{QC-QMC with finite shots}
+
+We established that QC-AFQMC is a useful tool for obtaining accurate ground state energies of molecular systems, as demonstrated with \ce{H4} and relative energies of \ce{O3} and singlet/triplet molecular oxygen \ce{O2}. However, our previous analysis considered the idealistic case where users have access to the exact state vector of the quantum trial wave function, which is only obtainable in the infinite shot limit, infeasible for classically intractable system sizes. In our second study, \cite{kiser2024classical}, we investigate the finite shot scenario of QC-AFQMC, examining different measurement strategies for trial overlaps, their statistical properties, sampling complexity, analytical bounds, and numerical estimates from example systems. For our test systems, we observe that final energy estimates with shot-noise approach shot-noise-free energy estimates at experimentally feasible measurement accuracies of $\epsilon = 10^{-2} \sim 10^{-3}$. We conclude this chapter with an evaluation of classical and quantum resources required for the end-to-end implementation to assess the overall applicability of this hybrid algorithm in realistic scenarios.
+
+\subsection{The Shadows Formalism and Different Variants with Their Statistical Properties}\label{sub:shadowsandstats}
+
+Here, we investigate measurement schemes proposed in \cite{huggins2022unbiasing, wan2022matchgate} for obtaining the necessary overlaps in QC-AFQMC. We are particularly interested in the sampling complexity of each scheme and the classical and quantum computational complexity required to implement each scheme. In Ref.~\cite{huggins2022unbiasing}, the Hadamard test has been suggested for the fault-tolerant scenario when higher circuit depth is available. The experimental implementation used a variant of classical shadows \cite{huang2020predicting}, which, however, requires an exponentially scaling classical post-processing step. Ref.~\cite{wan2022matchgate} and Ref.~\cite{low2022classical} each introduced a variant of classical shadows that does not have this exponential bottleneck. We discuss, for each measurement scheme, briefly how they work and their variance bounds.
+
+\subsubsection{Hadamard test}
+
+The Hadamard test \cite{cleve1998quantum, aharonov2005a, kitaev1995quantum} (see Fig.~\ref{fig:hadamard}) was proposed in Ref.~\cite{huggins2022unbiasing} to compute overlaps, which necessitates a modification in the circuit, depicted in Fig.~\ref{fig:hadamard_circuit}.
+
+\begin{figure}
+\centering
+\begin{quantikz}
+\lstick{$\ket{0}$} & \gate{H} & \gate[style={dashed}]{S} & \ctrl{1} &\octrl{1} & \gate{H} &\meter{}\\
+\lstick{$\ket{0^{\otimes N}}$} &\ghost{X} && \gate{U_{\Psi_\mathrm{T}}}  & \gate{U_{\phi_z}} & & 
+\end{quantikz}
+\caption{Quantum circuit representing the modified Hadamard test to calculate the overlap  $\braket{\Psi_\mathrm{T}}{\phi_z}$ between the trial wave function $\ket{\Psi_\mathrm{T}}$ and a walker state $\ket{\phi_z}$ by using an auxiliary qubit. The gate $H$ is a Hadamard gate, the unitaries $U_{\Psi_\mathrm{T}}$ and $U_{\phi_z}$ prepare the states $\ket{\Psi_\mathrm{T}}$ and $\ket{\phi_z}$, respectively. Depending on the application of the phase gate $S$, the real or imaginary part of the overlap is calculated. This figure is taken from \cite{kiser2024classical}.}
+\label{fig:hadamard_circuit}
+\end{figure}
+
+Ref.~\cite{luongo2023chapter} proposed a modification to the Hadamard test to estimate overlaps between two quantum states (Fig.~\ref{fig:hadamard_circuit}). The Hadamard test has a sampling complexity scaling as $\mathcal{O}(1/\epsilon^2)$. The implementation requires controlled versions of state preparation unitaries $\ket{\Psi_\mathrm{T}} = U_{\Psi_\mathrm{T}} \ket{0}$ and $\ket{\phi_z} = U_{\phi_z} \ket{0}$ resulting in high circuit depths. This requirement makes the Hadamard test impractical in the current NISQ era. More resource-conscious modifications are studied in \cite{huggins2020non,lu2021algorithms,russo2021evaluating}. 
+
+Although the sampling complexity of the Hadamard test does not increase with system size, it still demands significant computing time on quantum devices, as circuits must be executed for each walker at each time step.
+The statistical properties of the Hadamard test are well-established \cite{polla2023optimizing}. When employed to compute the real component of the overlap, the variance of the estimate is given by
+\begin{align}
+    \mathrm{Var}[\mathrm{Re}(\braket{\Psi_\mathrm{T}}{\phi})] = \frac{1-|\mathrm{Re}(\braket{\Psi_\mathrm{T}}{\phi})|^2}{n_m}\,,
+\end{align}
+where  $n_m$ denotes the number of circuit repetitions for a single overlap estimation. An analogous equation holds for the imaginary part.
+It is important to note that since we are dealing with a continuous set of walker states $\{\ket*{\phi^{(n)}_z}\}$, the Hadamard test must be repeated for each overlap calculation, and measurements cannot be reused. By utilizing the amplitude estimation algorithm, the Hadamard test could achieve Heisenberg scaling \cite{brassard2002quantum, lin2022lecture}; however, this requires even deeper quantum circuits.
+
+\subsubsection{Classical Shadows}\label{sec:classicalshadows}
+
+A more practical measurement scheme employed in experimental realizations of QC-AFQMC is classical shadows  \cite{huggins2022unbiasing, huang2020predicting}. Classical shadows is a scheme based on shadow tomography  \cite{aaronson2017shadow} that allows prediction of expectation values from many observables ${O_i}$ of an unknown quantum state $\rho$ prepared on a quantum computer. This is achieved by constructing an unbiased estimator of the unknown state from randomized measurements, using only logarithmically scaling samples in the number of considered observables. We summarize the classical shadow scheme as introduced in \cite{huang2020predicting}, which explains why this scheme is well-suited for QC-AFQMC.
+
+The Classical Shadow scheme operates as follows \cite{huang2020predicting}:
+\begin{description}
+    \item[Input:] $n_s$ copies of an unknown $N$-qubit quantum state $\rho$, access to a tomographically complete ensemble of unitaries $\mathcal{U}$.
+    \item[Output:] The classical shadows $\hat{\rho}$ allowing an estimation of expectation values of $M$ observables $\{O_i\}_{i\in [M]}$, $\Tr (O_i \rho)$ with finite variance.
+    \item[Step 1:] Measure each copy in a randomly rotated basis, i.e., apply a randomly sampled unitary $U$ from the ensemble $\mathcal{U}$, then measure in the computational basis. Collect these $n_s$ bitstring measuremnt outcomes $\ket{b} \in \{0,1\}^N$ which we call \textit{snapshots}.
+    \item[Step 2:] Generate \textit{classical shadows} from the projected post-measurement states $\ket{b}$. The mean estimate of randomized measurements from ensemble $\mathcal{U}$ forms a quantum channel:
+    \begin{equation}
+        \mathcal{M}(\rho) = \mathbb{E}_{U \sim \mathcal{U}} \sum_{d \in \{0,1\}^N} \bra{d} U \rho U^\dagger \ket{d} U^\dagger \ket{d}\bra{d}U.
+    \end{equation} Applying the inverse quantum channel  $\mathcal{M}^{-1}$ to the measuremnt outcome $\ket{b}$ leads to a classical estimator $\hat{\rho}$
+    \begin{equation}
+        \hat{\rho} = \mathcal{M}^{-1} (U^\dagger \ket{b}\bra{b}U).
+    \end{equation}
+    The specific form of $\mathcal{M}^{-1}$ depends on the choice of ensemble $\mathcal{U}$. The collection of $n_s$ snapshots is referred to as \textit{classical shadows}.
+    \item[Step 3:] Finally, predict $\Tr (O_i \rho)$ from the classical shadows. Ref.~\cite{huang2020predicting} used the median-of-means method to confine the estimator's variance. The shadows are divided into  $K$ equally sized sets, where a $\rho$-estimator is computed per set, resulting in a set of estimators  $\hat{\rho}_{(k)}$. For each $\hat{\rho}_{(k)}$, compute $\hat{o}_{(k)}= \Tr O_i \hat{\rho}_{(k)}$, and the output approximation of the observable expectation value is the median from all $K$ estimates $o_i = \mathrm{median} \{\hat{o}_{(k)}\}_{k \in [K]}$.  This treatment is not necessary if all $\hat{o}{(k)}$ have bounded variance, e.g., a Gaussian distribution.
+\end{description}
+
+Ref.~\cite{huang2020predicting} provides rigorous bounds for the general shadow protocol and specific choices of  $\mathcal{U}$. The variance in the general case for $\hat{O}$ is given as
+\begin{equation}
+    \mathrm{Var}[\hat{O}] = \mathbb{E}[(\hat{O} - \mathbb{E}[\hat{O}])^2] \leq \| O - \frac{\Tr (O)}{2^N} \|_{\mathrm{shadow}}^2,
+\end{equation} where the shadow norm $\| \cdot\|_\mathrm{shadow}$ is defined as
+\begin{equation}
+    \|O\|_\mathrm{shadow} = \max_{\sigma:\mathrm{state}} \sqrt{\mathbb{E}_{U \sim \mathcal{U}} \sum_{d \in \{0,1\}^N} \bra{d} U \sigma U^\dagger \ket{d} \bra{d} U \mathcal{M}^{-1}(O) U^\dagger \ket{d}^2  }.
+\end{equation}
+
+An ensemble concretely proposed in  Ref.~\cite{huang2020predicting} is the set of all $N$-qubit Clifford operations. We call this variant ``Clifford shadows''. With this choice, the inverse of the quantum channel becomes
+\begin{equation}
+  \hat{\rho} =  \mathcal{M}^{-1} (U^\dagger \ket{b}\bra{b}U) = (2^N + 1) U^\dagger \ket{b}\bra{b} U - \mathbbm(I),
+\end{equation} which leads to a bounded variance 
+\begin{equation}\label{eq:clifford_var}
+    \mathrm{Var}[\hat{O}] \leq 3 \Tr(O^2).
+\end{equation} A proof can be found in section 5B of the Supplementary Information in  Ref.~\cite{huang2020predicting}. This means that if the norm of the observable is small $\Tr(O^2) \approx 1$, Clifford shadows provide a favorably scaling scheme since only $\mathcal{O}(\log(M)/\epsilon^2)$ samples are necessary to obtain expectation values of $M$ observables up to $\epsilon$ additive error. This contrasts with the Hadamard test, where measurements for a single observable cannot be reused, representing an exponential advantage. 
+
+In QC-AFQMC, we need to calculate many overlaps between a quantum state prepared on a quantum computer $\ket{\Psi_\mathrm{T}}$ and classically obtained Slater determinants $\ket{\phi_i}$, a quantity bounded by 1. This presents a perfect use case for classical shadows.    Ref.~\cite{huggins2022unbiasing} devised a protocol to modify the overlap calculation to obtain physical observables for such. Given the VQE output $\ket{\Psi_\mathrm{T}}$, the quantum computer prepares
+\begin{equation}\label{eq:initstate}
+    \ket{\tau} = \frac{\ket{0} + \ket{\Psi_\mathrm{T}}}{\sqrt{2}}.
+\end{equation} The overlap observable is constructed from the following projectors
+\begin{align}
+    P_+ &= \ket{0} \bra{\phi_i} + \ket{\phi_i}\bra{0} \\
+    P_- &= -i(\ket{0} \bra{\phi_i} - \ket{\phi_i}\bra{0}),
+\end{align} such that the overlap can be approximated as
+\begin{equation}\label{eq:overlapclifford}
+    \braket{\phi_i}{\Psi_\mathrm{T}} = \Tr ((P_+ + i P_-)\ketbra{\tau}) \approx 2(2^N + 1) \bra{\phi_i} \mathbb{E}_{U \sim \mathcal{U}}[U^\dagger \ket{b}\bra{b} U \ket{0}].
+\end{equation} There is, however, a caveat in  Eq.~\ref{eq:overlapclifford}.  The evaluation of  $\bra{\phi_i} \mathbb{E}_{U \sim \mathcal{U}}[U^\dagger \ket{b}\bra{b} U \ket{0}]$ leads to exponentially costly classical post-processing, since $\ket{\phi_i}$ is a non-orthogonal Slater determinant, and the overlap with the Clifford shadow, constructed from Clifford states, cannot be calculated efficiently. Can this deal-breaker be remedied to render QC-AFQMC an overall efficient scheme?
+
+The attentive reader might recall that we already mentioned an ensemble of unitaries allowing classically efficient manipulation of non-orthogonal Slater determinants. We discussed exponentials of single-body operators, also referred to as \ac{FGU} known in quantum computing in their Jordan-Wigner transformed form as \textit{matchgate circuits} \cite{jozsa2008matchgates}.
+
+\subsubsection{Matchgate Shadows}\label{subsub:matchgate}
+To prevent the exponential post-processing cost of Clifford shadows, Wan et al. \cite{wan2022matchgate}  proposed \textit{matchgate shadows}, which use matchgates as the ensemble for randomized unitaries. More precisely, they showed that it suffices to consider an ensemble that contains unitaries which are both matchgates and Clifford circuits. Free Gaussian states have been extensively studied in many-body physics with well-developed theory \cite{lifshitz2013statistical, onsager1944crystal, fidkowski2011topological}; a review of free Gaussian state theory is given in Ref.~\cite{surace2022fermionic}. FGUs $U(Q)$ are fully characterized by $2N\times2N$ matrices from the real orthogonal group $Q \in O(2N)$
+\begin{equation}
+U(Q)^\dagger\gamma_\mu U(Q)=\sum_{\nu=1}^{2N}Q_{\mu\nu}\gamma_\nu~,
+\end{equation}
+where $\gamma_\mu$ are Majorana operators, $\gamma_{2j-1}=a_j+a_j^\dagger$ and $\gamma_{2j}=-i(a_j-a_j^\dagger)$, $N$ is the number of fermions.  Any free Gaussian state  $\rho$ is fully determined by its two-point correlations $\Tr(\rho \gamma_\mu \gamma_\nu)$, which can be expressed jointly as the skew-symmetric \textit{covariance matrix}
+\begin{equation}
+    (C_\rho)_{\mu \nu} = - \frac{i}{2} \Tr([\gamma_\mu, \gamma_\nu] \rho).
+\end{equation} Since each state is fully characterized by these correlations, expectation values of $\rho$ for any observable can be obtained from the covariance matrix via Wick's theorem
+\begin{equation}
+    \Tr(\rho \gamma_{p_1} \gamma_{p_2} \dots \gamma_{p_n} ) = \mathrm{Pf}(C|_{p_1,p_2,\dots,p_n}),
+\end{equation} where $C|_{p_1,p_2,\dots,p_n}$ is the covariance matrix restricted to rows and columns $p_1,p_2,\dots,p_n$ and $\mathrm{Pf}(A)$ is the Pfaffian of a skew-symmetric matrix
+\begin{equation}
+    \mathrm{Pf}(A) = \frac{1}{2^n n!} \sum_{\sigma \in \mathcal{S}_{2n}} \mathrm{sign}(\sigma) \prod_{i=1}^n a_{\sigma(2i -1), \sigma(2i)}, 
+\end{equation} where $\mathcal{S}_{2n}$ is the symmetric group of degree $2n$. 
+
+Inspired by Wick's theorem, Ref.~\cite{wan2022matchgate} devised a method to compute overlaps between trial wave functions and single Slater determinants without exponential post-processing cost by casting the overlap calculation as coefficient estimation of a polynomial function. We focus here only on the final results of Ref.~\cite{wan2022matchgate}, since the mathematics employed in deriving matchgate shadows and the efficient post-processing scheme introduces substantial new material that would deflect from the narrative of this thesis. We note only that the primary effort in devising concrete classical shadow protocols lies in deriving the twirled (i.e., averaged over the chosen ensemble) inverted measurement channel $\mathcal{M}^{-1}$. In the case of matchgates, this results in terms containing many binomial coefficients, since the restriction to matchgates that are also Clifford operators transforms the continuous group into a discrete group involving permutations and reflections, rendering the calculations a combinatorial problem.
+
+We prepare the same state $\ket{\tau}$ as in the Clifford shadow case (Eq.~\ref{eq:initstate}) on the quantum computer. The evaluation of overlaps is given in Theorem 3 of \cite{wan2022matchgate}, requiring estimation of coefficients $c_\ell$ of $z^\ell$ in the following polynomial function
+\begin{equation}
+    \label{eq:matchgateinversechannel}
+    q(z)=\alpha_{\eta, N}\text{Pf}\left[\left.\left(C_{\boldsymbol{0}}+zW^*\tilde Q Q^\text{T}C_{\textbf{b}}Q\tilde Q^\text{T}W^\dagger\right)\right|_{\overline{S}_{\eta}}\right]~,
+\end{equation} where $\alpha_{\eta, N}=i^{\eta/2}/2^{N-\eta/2}$, $C_\textbf{i}$ is the covariance matrix of the computational basis state  $\textbf{i}$, $W$ is a basis change from the set $\{\sqrt{2}a_1^\dagger,\sqrt{2}a_1,\dots,\sqrt{2}a_\eta^\dagger,\sqrt{2}a_\eta,\gamma_{2\eta+1},\dots,\gamma_{2N}\}$ to the set of Majorana operators $\{\gamma_\mu\}_{\mu\in[2N]}$ \cite{wan2022matchgate}, $\tilde Q$ encodes the Slater determinant, $Q$ is the matchgate rotation for a given snapshot and ${\overline{S}_{\eta}}=[2N]\setminus \{1,3,\dots,2\eta-1\}$. 
+The Pfaffian is a polynomial function in $z$ with degree at most $N-\eta/2$. Ref.~\cite{wan2022matchgate} devises a scheme for coefficient estimation that scales as $\mathcal{O}((N-\eta/2)^4)$ based on polynomial interpolation. These coefficients $c_\ell$ are then used to calculate the overlap estimate per shadow
+\begin{equation}
+    \label{eq:kianna_estimation}
+    o^{(j)}=2\sum_{\ell=0}^N\binom{2N}{2\ell}\binom{N}{\ell}^{-1}c_\ell~.
+\end{equation} The final estimate is then given as
+\begin{equation}
+    \braket{\phi}{\Psi_\mathrm{T}} \approx \sum_j o^{(j)} / n_s.
+\end{equation}
+The variance of this estimate is bounded by
+\cite{wan2022matchgate}
+\begin{equation}
+\label{eq:kiannabound}
+    \left.\operatorname{Var}[\hat{o}]\right|_{O=|\phi\rangle\langle\mathbf{0}|} \leq b(N, \eta):=\frac{1}{2^{2 N}} \sum_{\substack{\ell_1, \ell_2, \ell_3 \geq 0 \\ \ell_1+\ell_2+\ell_3 \leq N}} \alpha_{\ell_1, \ell_2, \ell_3} \kappa\left(N, \eta, \ell_1, \ell_2, \ell_3\right),
+\end{equation}
+where $\alpha_{\ell_1, \ell_2, \ell_3}$ and $\kappa\left(N, \eta, \ell_1, \ell_2, \ell_3\right)$ are defined below, $N$ is the total number of fermionic modes and $\eta$ is the number of occupied fermionic modes.
+\begin{equation}
+\alpha_{\ell_1, \ell_2, \ell_3} :=
+\frac{\left(\begin{array}{c}
+N \\
+\ell_1,\ell_2,\ell_3,N-\ell_1-\ell_2-\ell_3
+\end{array}\right)}{\left(\begin{array}{c}
+2N \\
+2\ell_1,2\ell_2,2\ell_3,2\left(N-\ell_1-\ell_2-\ell_3\right)
+\end{array}\right)}
+    \frac{\left(\begin{array}{c}
+2 N \\
+2\left(\ell_1+\ell_3\right)
+\end{array}\right)}{\left(\begin{array}{c}
+N \\
+\ell_1+\ell_3
+\end{array}\right)} \frac{\left(\begin{array}{c}
+2 N \\
+2\left(\ell_2+\ell_3\right)
+\end{array}\right)}{\left(\begin{array}{c}
+N \\
+\ell_2+\ell_3
+\end{array}\right)}
+\end{equation}
+\begin{equation}
+    \kappa\left(N, \eta, \ell_1, \ell_2, \ell_3\right):=2^\eta \sum_{j=0}^{\eta / 2}\left(\begin{array}{c}
+\eta \\
+2 j
+\end{array}\right)\left(\begin{array}{c}
+N-\eta \\
+\ell_1-\eta / 2+j, \ell_2-\eta / 2+j, \ell_3-j, N-\ell_1-\ell_2-\ell_3-j
+\end{array}\right)
+\end{equation}
+Ref.~\cite{wan2022matchgate} showed that above expressions imply the variance to scale as  $\mathcal{O}(\sqrt{N}\log(N))$. 
+
+\subsubsection{Orbital rotaion shadows}
+
+Low proposed a fermionic shadows protocol with tighter variance \cite{low2022classical}, which we call orbital rotation shadows. While matchgate shadows operate in the space of system size $N$, orbital rotation shadows scale with the number of occupied fermionic modes $\eta$, i.e., the particle number,  realized through an ensemble choice over particle-restricted matchgates. These are single-particle basis rotations
+\begin{equation}
+ U^\dagger(u) a_p^{\dagger} U(u)=\sum_{q=1}^{N}u_{pq}a_q^{\dagger}~,
+\end{equation}
+where $u \in \mathbb{C}^{N \times N}$ is a unitary matrix defining the change of basis of fermionic modes, with representation $U(u) \in \mathbb{C}^{2^N \times 2^N}$ in Hilbert space. We refer to the submatrix restricted to the $k$-particle subspace as  $U_k \in \mathbb{C}^{\binom{N}{k}\times \binom{N}{k}}$.
+In this framework, it is convenient to formulate observable estimates as expectation values of $k$-particle reduced density matrices ($k$-RDMs)
+\begin{equation}
+\left\langle D_{\vec{q}}^{\vec{p}}\right\rangle=\operatorname{Tr}\left[D_{\vec{q}}^{\vec{p}} \rho\right], \quad D_{\vec{q}}^{\vec{p}} = a_{p_1}^{\dagger} \cdots  a_{p_k}^{\dagger} a_{q_k} \cdots  a_{q_1} ~,
+\end{equation} for any quantum state $\rho$, where $\vec{q}, \vec{p}$ are bitstrings indicating creation and annihilation operators, i.e., $\vec{p}, \vec{q} \in \mathcal{S}_{N, k}$, with
+\begin{equation}
+\mathcal{S}_{N, k} = \left\{ \{p_1 \ldots p_i \ldots p_N\}:\forall p_i \in \{0,1\} , \sum_{i=1}^N p_i=k\right\} ~. 
+\end{equation}
+Orbital rotation shadows efficiently obtain such $k$-RDMs. The single-shot estimator for the unitary given by the sampled $u$ following a measurement in the computational basis is \cite{low2019hamiltonian}
+\begin{equation}
+\label{eq:lowsingleshotestimator}
+\left\langle\hat{D}_{\vec{q}}^{\vec{p}}\right\rangle=\left\langle\vec{p}\left|U_k\left(v_b u\right) E_{\eta, k} U_k^{\dagger}\left(v_b u\right)\right| \vec{q}\right\rangle \, ,
+\end{equation}
+where the basis states $ \bra{\vec{p}}$ and $\ket{\vec{q}}$ are defined by $\ket{\vec{p}} =  \bra{0} \prod_{i=0}^{N} p_i a_{i}^{\dagger}$ and $\ket{\vec{q}} =  \prod_{i=N}^{0} q_i a_{i}^{\dagger} \ket{0} $.
+The matrix $v_b$ rotates $b$ into the ordered string $\vec{r}^o =  \{11\cdots 00\} \:= \{1^{\otimes \eta}\}+ \{0^{\otimes (N-\eta)}\} \in \mathcal{S}_{N, \eta}$ and the operator $E_{\eta, k}$ is defined as
+\begin{equation}
+ E_{\eta, k} = \sum_{\vec{r} \in \mathcal{S}_{N, k}}|\vec{r}\rangle\langle \vec{r}| \frac{\left(\begin{array}{c}
+\eta-s^{\prime} \\
+k-s^{\prime}
+\end{array}\right)\left(\begin{array}{c}
+N-\eta+s^{\prime} \\
+s^{\prime}
+\end{array}\right)}{(-1)^{k+s^{\prime}}\left(\begin{array}{c}
+k \\
+s^{\prime}
+\end{array}\right)} .
+\end{equation}
+with $s^\prime = \sum_i r^o_i r_i$ and $\vec{r}$ indexing the basis states in the $k$-particle subspace using the same notation as $\vec{p}$ and $\vec{q}$.
+
+The overlap $\braket{\Psi_\mathrm{T}}{\phi_i}$ can be estimated from $\eta$-RDMs, where $\eta$ is the particle number of the trial wave function $\ket{\Psi_\mathrm{T}}$. To accomplish this, we prepare $\ket{\tau'}$ on the quantum device \cite{low2022classical}
+\begin{equation}
+\left|\tau^\prime\right\rangle=\frac{\left|0^{\otimes N}\right\rangle_\text{S}\left|1^{\otimes \eta}\right\rangle_\text{A}+ |\Psi_\mathrm{T}\rangle_\text{S} |0^{\otimes\eta}\rangle_\text{A}}{\sqrt{2}},
+\end{equation}
+ where $|\cdot\rangle_\text{S}$ refers to the original register and $|\cdot\rangle_\text{A}$ to the added auxiliary register. This auxiliary register is necessary because the reference state employed in $\ket{\tau}$, for instance, is $\ket{0}$, which resides in the wrong particle subspace. Since we cannot guarantee a  ``free'' state in the correct subspace, we must introduce this auxiliary system. Thus, the advantageous sampling complexity comes at the expense of higher qubit requirements. 
+The overlaps can be inferred from the relation \cite{low2022classical}
+ \begin{equation}
+     \langle\vec{q} \, | \Psi_\mathrm{T}\rangle = 2\operatorname{Tr}\left[D_{\vec{q'} }^{\vec{p'} }\left|\tau^{\prime}\right\rangle\left\langle\tau^{\prime}\right|\right] ,
+\label{eq:overlapfromrdmlow}
+ \end{equation}
+ with $\vec{p'} = \{0^{\otimes N}\}+\{1^{\otimes \eta}\}$ and $\vec{q'} = \vec{q}+ \{0^{\otimes \eta}\}$ and $\vec{p'},\vec{q'} \in  \mathcal{S}_{N+\eta, \eta}$.
+The average shot variance of the estimator is bounded by
+\begin{equation}
+\label{eq:lowbound}
+    \mathbb{E}_{\vec{p}, \vec{q}}\left[\operatorname{Var}\left[\left\langle\hat{D}_{\vec{q}}^{\vec{p}}\right\rangle\right]\right] \leq\left(\begin{array}{l}
+\eta \\
+k
+\end{array}\right)\left(1-\frac{\eta-k}{N}\right)^k\left(\frac{1+N}{1+N-k}\right),
+\end{equation}
+which scales as $\mathcal{O}(\eta^2)$. The estimator in Eq.~\ref{eq:lowsingleshotestimator} is only classically efficient for a constant $k$. 
+%For efficient estimation in $k$, one can adapt a scheme based on polynomial interpolation of Pfaffians introduced in \cite{wan2022matchgate}.
+
+\subsection{Tightness of variance bounds for \ce{H4}}
+
+In this section, we examine the statistical behavior of overlaps evaluated with different variants of classical shadows, Clifford, matchgate, and orbital rotation, through simulated implementation of overlap estimation for \ce{H4} in square geometry with side length $1.23\text{\AA}$ in STO-3G basis. This artificial molecule is often chosen as a benchmark for correlated methods due to its non-trivial correlations \cite{huggins2022unbiasing, baek2023say}. The trial wave function is a VQE with the \ac{QNP} ansatz \cite{anselmetti2021local} with four layers, optimized using L-BFGS-B \cite{liu1989limited} to achieve a VQE energy estimate of $-1.962$ Ha, deviating $7$ mHa from the FCI solution.
+
+Fig.~\ref{fig:overlapscalingsMSandCS} displays histograms of estimated overlaps using matchgate and Clifford shadows. Two arbitrary walker states from an AFQMC run were selected, and the overlap $\braket{\Psi_\mathrm{T}}{\phi}$ was estimated using both shadow methods. Each histogram count represents an estimate from $10^4$ shadows, repeated 2000 times per protocol. We observe that the distribution follows a normal distribution \cite{hadfield2020measurements}, and the variance exhibits the expected shot-noise scaling of $\mathcal{O}(n_s^{-1/2})$ for both shadow variants.
+
+For better comparison of the three shadow variants, we calculate the average estimate variance for all computational basis states with respect to the VQE trial wave function. In addition to \ce{H4} in STO-3G basis, we also study a larger system, \ce{H4} in 6-31G basis.
+
+We compare the numerical results against analytical bounds of the respective estimators in  Fig.~\ref{fig:lowmatchgate_scaling_varince}. The bounds are given by $4 \, b(N,\eta=4)$ from Eq.~\ref{eq:kiannabound} (Matchgate), $3 \operatorname{Tr}(O^2)$ from Eq.~\ref{eq:clifford_var} (Clifford) and $4 \,\mathbb{E}_{\vec{p}, \vec{q}}\left[\mathrm{Var}\left[\left\langle\hat{D}_{\vec{q}}^{\vec{p}}\right\rangle\right]\right]$ from \cref{eq:lowbound} (Orbital rotation). 
+The factors of 4 for matchgate and orbital rotation shadows in the analytical bounds arise from a factor of 2 in the estimation of overlaps with Slater determinants from  Eq.~\ref{eq:overlapfromrdmlow}.  The bound for orbital rotation shadows applies to the average shot variance of $\eta$-RDM entries \cite{low2022classical}, while bounds for Clifford and matchgate shadows apply to individual observable variances. We investigate scaling behavior for fixed $\eta$ and $k$. Matchgate shadows scale as $\mathcal{O}(N^2)$ while both Clifford and orbital rotation shadows remain bounded; orbital rotation shadow variance even decreases with increasing $N$. These advantages come with trade-offs: increased qubit requirements by $\eta$ for orbital rotation shadows, increased circuit depth, and classically inefficient post-processing for Clifford shadows. For the smaller STO-3G basis, matchgate shadows achieve lower shot variance than orbital rotation shadows, while for the larger 6-31G basis, orbital rotation shadows achieve the lowest average shot variance of $\sim 2.23$, roughly half the numerical bound.
+
+\begin{figure}
+    \centering  
+    \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\textwidth]{images/finite_meas/matchgate_overlap_estimates.pdf}
+    \caption{Matchgate shadows}
+        \label{fig:matchgate_scaling_variance}
+    \end{subfigure}
+
+    \begin{subfigure}{0.45\textwidth}
+            \centering  \includegraphics[width=\textwidth]{images/finite_meas/clifford_overlap_estimates.pdf}       
+            \caption{Clifford shadows}
+            \label{fig:clifford_scaling_varince}
+    \end{subfigure}
+
+    \caption{Left: Estimating overlaps with matchgate shadows. (main plot) The histograms show the distribution of absolute values of overlap estimates of two walker states with respect to a VQE output state ($\ce{H4}$) from 2000 repeated shadow experiments, each utilizing $10^4$ matchgate shadows. The dashed red lines represent Gaussian distributions fitted to both distributions. (inset) The variance in the overlap distribution increases as the number of shadows increases. Right: Analogous plot of the left for Clifford shadows. This figure is taken from \cite{kiser2024classical}.}\label{fig:overlapscalingsMSandCS}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.7\columnwidth]{images/finite_meas/meanvariances.pdf}
+    \caption{Numerical estimation of the average shot variances of all overlaps with computational basis states of the matchgate, Clifford and orbital rotation shadows for approximate ground states of $\ce{H4}$ in STO-3G basis ($N=8$, $\eta=4$) and in 6-31G basis ($N=16$, $\eta=4$) for $10^4$ shots in comparison with the analytical bounds of the variances.  The offset in $N$ of orbital rotation shadow estimation is due to the reference state requiring $N+\eta$ qubits. This figure is taken from \cite{kiser2024classical}. }
+\label{fig:lowmatchgate_scaling_varince}
+\end{figure}
+
+\subsection{Effect of noise on QC-AFQMC}
+
+
+We now study the effect of noise in overlap estimates on overall AFQMC performance. Having established that the distribution of estimates follows a normal distribution, we simulate shot noise via a Gaussian error model applied to overlaps in the AFQMC computation. Specifically, we add a randomly sampled error term from an appropriately chosen Gaussian distribution to each overlap term in the random walk.
+
+\subsubsection{Error on AFQMC through Gaussian error propagation}
+
+Using Gaussian error propagation, we estimate the effect of noisy overlaps on energy estimation and force bias. For energy estimation, we recall that the total energy is given as the weighted sum of local energy estimates (Eq.~\ref{eq:globalenergy}), where the local energy is
+\begin{equation}
+    E_{\mathrm{loc}} (\ket{\phi_i(\tau)}) = \frac{\bra{\Psi_\mathrm{T}} H \ket{\phi_i(\tau)}}{\braket{\Psi_\mathrm{T}}{\phi_i(\tau)}}. 
+\end{equation} The numerator decomposes into weighted sums of overlaps with excited walker states
+\begin{equation}
+    \matrixel{\Psi_\mathrm{T}}{H}{\phi_i} = \sum_{pq} \braket*{\Tilde{\Psi}_\mathrm{T}}{\phi_{p}^{q}} \Tilde{h}_{pq}+\sum_{pqrs}\braket*{\Tilde{\Psi}_\mathrm{T}}{\phi_{pq}^{rs}} \Tilde{h}_{pqrs}\,,
+\end{equation} where  $\Tilde{h}_{pq} = \bra{\phi_i} a_p^\dagger a_q H \ket{\phi_i}$ and $\Tilde{h}_{pqrs} = \bra{\phi_i} a_p^\dagger a_q^\dagger a_r a_s H \ket{\phi_i}$ are the classically evaluable contributions from the Hamiltonian. The notation $\Tilde{\cdot}$  indicates implicit rotation into the walker's orbital basis for simplicity, which does not change expectation values. The error of the numerator is given by linearized error propagation as 
+\begin{align}
+        \epsilon_\mathrm{num.}<\epsilon \sqrt{\left(\sum_{pq} |\Tilde{h}_{pq}|^2 + \sum_{pqrs} |\Tilde{h}_{pqrs}|^2\right)}=:\epsilon\lambda\,.
+\end{align} Since the 2-norm is invariant under unitary rotations, we can bound the 2-norm of the rotated Hamiltonian via the original one $\lambda^2=\sum_{pq} |h_{pq}|^2 + \sum_{pqrs} |h_{pqrs}|^2$. This is a somewhat loose upper bound, since only the coefficients of the Hamiltonian picked up by the walker states themselves contribute to the error. Since walkers reside in a restricted particle-number subspace, we believe this bound could be tightened, though this is beyond our current scope.
+The denominator of the local energy is simply the overlap term. In total, we obtain for the error of the local energy estimator:
+\begin{align}
+    \epsilon_\mathrm{LE} &= E_\mathrm{loc}(\phi)\epsilon\sqrt{\frac{\lambda^2}{\matrixel{\Psi_\mathrm{T}}{H}{\phi}^2}+\frac{1}{\braket{\Psi_\mathrm{T}}{\phi}^2}}\\
+    \Rightarrow \epsilon_{\mathrm{LE}}^2 &= \frac{\epsilon^2\lambda^2}{\braket{\Psi_\mathrm{T}}{\phi}^2}+\epsilon^2 \matrixel{\Psi_\mathrm{T}}{H}{\phi}^2\\
+    &\leq \epsilon^2\lambda^2 \left(1+\frac{1}{\braket{\Psi_\mathrm{T}}{\phi}^2}\right)\leq\frac{2 \epsilon^2\lambda^2}{\braket{\Psi_\mathrm{T}}{\phi}^2}\,.
+\end{align} We observe that the local energy estimator error has linear dependence on the Hamiltonian's 2-norm and inverse dependence on the overlap value between trial and walker states. This implies exponential sampling complexity for exponentially vanishing overlaps, a scenario highlighted in \cite{mazzola2022exponential} as realistic for larger classically intractable systems.
+Neglecting error on walker weights, the error of the total energy, which is the weighted sum of all local energies, is
+\begin{align}
+    \epsilon_{\mathrm{tot}}= \sqrt{\sum w_\phi^2 \epsilon_\mathrm{LE}^2 }\approx \frac{\epsilon_\mathrm{LE}}{\sqrt{N_{w}}}\,.
+\end{align}
+Finally, the AFQMC energy estimate is the mean of all energy estimates from each block
+\begin{align}
+    E_\textrm{AFQMC}=\frac{1}{N_\mathrm{B}}\sum_i^b E_\mathrm{tot}^{(i)}\,.
+\end{align} Hence, the error on the AFQMC energy becomes
+\begin{align}
+    \epsilon_\textrm{E}=\frac{\epsilon_{tot}}{\sqrt{N_\mathrm{B}}}=\frac{\epsilon_{LE}}{\sqrt{N_\mathrm{B}}\sqrt{N_{w}}}.
+\end{align}
+
+Note, however, that our final error expression only includes the error from shot noise in overlap estimates. Also, strictly speaking, the independent and identically distributed (iid) assumption is typically not fulfilled in AFQMC due to autocorrelation of walker states.
+
+We conduct analogous calculations for the force bias Eq.~\ref{eq:forcebias}, resulting in:
+
+\begin{align}
+    \epsilon_{\Bar{x}_\gamma}=\Bar{x}_\gamma \epsilon \sqrt{\frac{\sum_{pq}|L^{\gamma}_{pq}|^2}{(\sum_{pq}\bra{\Psi_\mathrm{T}} a_q^\dagger a_p \ket{\phi_i} \bra{\phi_i} a_p^\dagger a_q  L_{pq}^\gamma \ket{\phi_i}^2}} \, .
+\end{align}
+
+\subsubsection{Numerics on finite shot errors in QC-AFQMC}
+
+Finally, we simulate the effect of finite shot noise in overlap estimates on selected benchmark molecules under two scenarios.
+We study the \ce{H4} system on a square with distance $1.23 \text{\AA}$ in the STO-3G basis. The trial wave function is the optimized \ac{QNP}-ansatz with 4 layers \cite{anselmetti2021local}. This VQE simulation is implemented using Python packages \texttt{PySCF} \cite{sun2018pyscf}, \texttt{Openfermion} \cite{mcclean2020openfermion}, and \texttt{cirq} \cite{cirq_developers_2022_7465577}. Optimization with L-BFGS-B \cite{liu1989on} yields a VQE energy of $-1.962$ Ha, which differs from the FCI energy by $7$ mHa. While convergence to the FCI energy is possible with a deeper VQE ansatz, we keep the ansatz shallow since our aim is to observe the effect of convergence using noisy overlaps from the VQE state as the AFQMC trial wave function.
+The subsequent QC-AFQMC simulation is performed with \texttt{ipie} \cite{malone2022ipie}, with a custom solution to incorporate iid noise on overlaps. This feature was later added by the ipie developers \cite{jiang2024improved}. We set the metaparameters as: number of walkers $N_w = 1000$, number of compute blocks $N_B =1000$, number of imaginary time evolutions per block $N_{\Delta \tau} = 20$, with the imaginary time step $\Delta \tau = 0.005$. The first 200 blocks are discarded as burn-in time. Fig.~\ref{fig:afqmc_estimates_h2_h2o} (top) shows the effect of noisy overlaps in the \ce{H4} system. The final energy estimate is given as a function of shot noise level per overlap $\epsilon$. The blue points indicate scenarios where noisy overlaps only affect walker propagation, and the yellow points indicate scenarios where energy evaluation is also noisy. For \ce{H4}, we observe that ground state energies are overestimated in the presence of noise. The local energy estimates show wider error margins, and estimates for propagation and local energy do not differ significantly. QC-AFQMC shows robustness against noise, since at noise levels around $\sim 10^{-2}$, both estimates converge almost to the noise-free case, which is within chemical accuracy, depicted as the red belt.
+We note that higher fluctuations in local energy estimation might also be due to autocorrelation effects, as error blocking, which is typically employed, has not been applied here.
+
+
+\begin{figure}
+\centering
+    \includegraphics[width=0.7\columnwidth]{images/finite_meas/H4_H2O.pdf}
+    \caption{AFQMC energy estimates for two systems: (top) the $\ce{H4}$ square in STO-3G basis set, and (bottom) $\ce{H2O}$ in STO-3G basis set. We investigate the impact of varying noise levels $\epsilon$ in the overlap estimation. For comparison, we apply finite measurements in two scenarios: (1) only during propagation (blue curve), and (2) for estimating all quantities (orange curve). The dashed red curve represents the exact ground state energy for each system, while the red shaded area corresponds to energies that lie within chemical accuracy with respect to the ground state energy. This figure is taken from \cite{kiser2024classical}.}
+    \label{fig:afqmc_estimates_h2_h2o}
+\end{figure}
+
+We also study a slightly larger molecule, \ce{H2O}, using the same setup. The geometry of \ce{H2O} is taken from the HEAT dataset \cite{tajti2004heat}, with $r_\mathrm{OH} = 0.95623\text{\AA}$ and $\theta_\mathrm{HOH} = 104.25^\circ$, again using the minimal basis set STO-3G. Here, we apply 12 layers of the QNP-ansatz and obtain, after optimization, an energy of $-75.002$ Ha, $10$ mHa off from the exact ground state energy. As with \ce{H4}, \ce{H2O} also converges to the noise-free value with noise levels less than or equal to $10^{-2}$, achieving chemical accuracy, though the error margin for the case with noisy local energy estimation is quite large.
+
+To study finite shot noise effects for larger systems, we examine \ce{H4} with larger basis sets, namely cc-pVDZ and cc-pVTZ, corresponding to 40 and 128 spin orbitals. Since 40- and especially 128-qubit VQE circuit simulations are not feasible, we approximate the multi-Slater determinant trial wave function via heat-bath CI \cite{holmes2016heat}, available through \texttt{PySCF}. We configure the trial wave function computation to ensure the resulting state is a singlet. The results of the subsequent AFQMC employing these trial wave functions with additional noisy overlaps are shown in Table~\ref{tab:afqmc_results}. We observe that both the noisy propagation case and the fully noisy case, i.e., noisy propagation and noisy energy estimation, succeed in improving the energy estimate over the trial state, but the improvement decreases as noise levels increase. This tendency is more pronounced in the fully noisy case.
+
+\subsection{Classical and quantum resource requirements of QC-AFQMC}
+
+To conclude this work, aiming at elucidating the practicality of QC-AFQMC, we compare total resource requirements, including quantum and classical resources,  for different implementations. Fig.~\ref{fig:afqmcoverlaps} summarizes the number of unique overlaps per AFQMC calculation step: one overlap estimate per importance sampling, amounting to $N_w N_B B_{\Delta \tau} \sim \mathcal{O}(1)$ overlap estimates, the force-bias to $\mathcal{O}(N^2)$ overlaps since it includes al one-body excited walker states, and finally the enrgy estimation $\mathcal{O}(N^3)$  assuming Hamiltonian compression methods like double factorization \cite{lee2020even}, otherwise $\mathcal{O}(N^4)$.
+
+Next, we consider classical post-processing requirements for each overlap estimate. Table~\ref{table:classical_scaling} summarizes these considerations. With the Hadamard test, post-processing is $\mathcal{O}(1)$ since the auxiliary qubit's expectation value directly encodes the desired overlap, independent of system size.
+Using Clifford shadows, post-processing scales exponentially as $\mathcal{O}(2^N)$ due to incompatibility between non-orthogonal Slater determinants and Clifford shadows given in stabilizer states. This bottleneck in the original QC-AFQMC proposal \cite{huggins2022unbiasing} was addressed by matchgate shadows \cite{wan2022matchgate}, which scale as $\mathcal{O}(N^4)$, running $\mathcal{O}(N)$ polynomial interpolation on $\mathcal{O}(N^3)$ Pfaffians. For orbital rotation shadows \cite{low2022classical}, the scaling is $\mathcal{O}(N^5)$ since interpolation extends to an $N^2$ grid.
+As discussed in Ref.~\cite{lee2022twenty}, maintaining constant error in the final AFQMC energy estimate requires increasing the number of samples quadratically with system size, adding $\mathcal{O}(N^2)$ to the classical processing complexity. In total, this leads to $\mathcal{O}(N^9)$ complexity to process all overlaps with matchgate shadows, and $\mathcal{O}(N^{10})$ when employing orbital rotation shadows.
+
+The quantum costs are reported in two ways. First, Table~\ref{table:quantum_scaling} summarizes the required number of copies of the quantum trial wave function. Second, we discuss the required circuit depths to implement each measurement scheme beyond the VQE ansatz depth.
+The Hadamard test scales per overlap estimate as $\mathcal{O}(1/\epsilon^2)$ but doesn't allow for sample reuse, so we require $\mathcal{O}(N_w N_B B_{\Delta \tau}/\epsilon^2)$ copies in total. Energy estimation requires an additional factor of $\mathcal{O}(N^3)$, and force bias calculation requires $\mathcal{O}(N^2)$.
+With Clifford shadows, the number of copies is reduced to  $\mathcal{O}(\log(N_w)/\epsilon^2)$. Matchgate shadows have an additional system size dependent scaling of $\mathcal{O}(\sqrt{N} \log(N)\log(N_w)/\epsilon^2 )$ \cite{wan2022matchgate}.
+Finally, the required depth to implement each measurement scheme varies as follows. The modified Hadamard test Fig.~\ref{fig:hadamard_circuit} requires implementing the state preparation circuit for the VQE trial wave function, a design choice that can chosen to be shallow, and the preparation circuit for the walker state, a single Slater determinant, efficiently prepared with scaling $\mathcal{O}(\eta \log^2(N))$ \cite{wecker2015solving, kivlichan2018quantum, google2020hartree,chee2023shallow}. However, the Hadamard test requires controlled versions of these state preparation circuits, adding substantial overhead to circuit depth depending on hardware connectivity.
+In the classical shadows framework, the Clifford unitary added after the VQE circuit scales as $N\log(N)$ on fully connected platforms \cite{berg2021simple}. For matchgate shadows, it is possible to restrict the ensemble to a subset of matchgates that are also Clifford circuits. This would lead to the same gate complexity as the Clifford shadows. Orbital rotation unitaries can be implemented with $\mathcal{O}(N)$ \cite{reck1993experimental}.
 
 
 
-Trial states and set‑up
-Classical: HF, CASSCF/CAS; quantum: UCCSD‑VQE initialised by CCSD amplitudes; also MPS trials for the lattice model; implementation via ipie, PySCF, and cirq; CBS extrapolation for molecular benchmarks and ZPVE corrections for experiment comparison.
+\begin{table}[t!]
+%\centering
+\begin{tabular}{c|cc}
+\hline
+ \multicolumn{3}{c}{AFQMC energy estimates of the \ce{H4} square (cc-pVDZ)}\\
+\hline
+\hline
+\multicolumn{1}{c|}{Trial energy}       & \multicolumn{2}{c}{-2.00476}                         \\  \hline
+\multicolumn{1}{c|}{Overlap error $\epsilon$} & \multicolumn{1}{c|}{Propagation} & \multicolumn{1}{c}{Full} \\ \hline
+\multicolumn{1}{c|}{0.1}         & \multicolumn{1}{c|}{-2.01150(1)} & -2.01354(346)                 \\ \hline
+\multicolumn{1}{c|}{0.01}        & \multicolumn{1}{c|}{-2.01207(2)} & -2.01102(94)                        \\ \hline
+\multicolumn{1}{c|}{0.001}       & \multicolumn{1}{c|}{-2.01239(6)} & -2.01270(24)                            \\ \hline
+\multicolumn{1}{c|}{No error}       & \multicolumn{1}{c|}{-2.01245(4)} & -2.01245(4)                          \\ 
+\end{tabular}
+\newline
+%\vspace*{5mm}
+\newline
+%\centering
+\begin{tabular}{c|cc}
+\hline
+ \multicolumn{3}{c}{AFQMC energy estimates of the \ce{H4} square (cc-pVTZ)}                         \\  
+\hline
+\hline
+\multicolumn{1}{c|}{Trial energy}       & \multicolumn{2}{c}{-2.01786}\\
+ \hline
+\multicolumn{1}{c|}{Overlap error $\epsilon$} & \multicolumn{1}{c|}{Propagation} & \multicolumn{1}{c}{Full} \\ \hline
+\multicolumn{1}{c|}{0.1}         & \multicolumn{1}{c|}{-2.02726(1)} & -2.01055(1118)                 \\ \hline
+\multicolumn{1}{c|}{0.01}        & \multicolumn{1}{c|}{-2.02922(1)} & -2.02434(368)                        \\ \hline
+\multicolumn{1}{c|}{0.001}       & \multicolumn{1}{c|}{-2.03275(1)} & -2.03190(182)                            \\ \hline
+\multicolumn{1}{c|}{No error}       & \multicolumn{1}{c|}{-2.03399(7)} & -2.03399(7)                          \\ 
+\end{tabular}
+\caption{Energy estimates derived from AFQMC calculations of $\ce{H4}$ using the cc-pVDZ (top) and cc-pVTZ (bottom) basis sets, considering different overlap errors ($\epsilon$). The \textit{Propagation} column presents estimates from AFQMC runs with errors affecting only the overlaps in the importance function, Eq.~\ref{eq:overlapratio}. Conversely, the \textit{Full}  column displays results where all overlap calculations are influenced by errors. All energies are reported in Hartree.}
+\label{tab:afqmc_results}
+\end{table}
+
+\begin{table}[tb]
+\begin{tabular}{c|c|c|c}
+\hline
+ \multicolumn{4}{c}{Scaling of post-processing cost} \\
+\hline\hline
+Method    & Single Overlap            & Local energy       & Force bias         \\ \hline
+Hadamard  & $1$   & $N^3$ & $N^2$ \\ \hline
+Clifford  & $2^N$ & $2^N$ & $2^N$ \\ \hline
+Matchgate & $N^4$ & $N^7$ & $N^6$ \\ \hline
+Orbital rot.  & $N^5$ & $N^{8}$ & $N^7$ \\ 
+\end{tabular}
+\caption{The scaling of the classical post-processing cost to estimate the overlap, the force bias for, and the local energy of a single walker. Only showing the largest scaling factor.}
+\label{table:classical_scaling}
+\end{table}
 
 
+\begin{table}[t!]
+\begin{tabular}{c|c|c|c}
+\hline
+ \multicolumn{4}{c}{Scaling of the number of measurements in the}  \\\multicolumn{4}{c}{overlap estimation} \\
+\hline
+\hline
+Method & Overlap & Local energy  & Force bias              \\ \hline
+Hadamard   & $N_{w}N_\mathrm{B}N_{\Delta\tau}/\epsilon^2$ & $N^3N_{w}N_\mathrm{B}/\epsilon^2$ & $N^2N_{w}N_\mathrm{B}N_{\Delta\tau}/\epsilon^2$ \\ \hline
+Clifford   & $1/\epsilon^2$ & $1/\epsilon^2$ & $1/\epsilon^2$ \\ \hline
+Matchgate  & $\sqrt{N}/\epsilon^2$ & $\sqrt{N}/\epsilon^2$ & $\sqrt{N}/\epsilon^2$ \\ \hline
+Orbital rot.  & $1/\epsilon^2$ & $1/\epsilon^2$ & $1/\epsilon^2$ \\ 
+\end{tabular}
+\caption{The $\tilde{\mathcal O}$-scaling (ignoring $\log$ terms) of the number of measurements to estimate the various objects in QC-AFQMC in scaling. Here, $\epsilon$ represents the additive error of each of the overlaps.}
+\label{table:quantum_scaling}
+\end{table}
 
+\subsection{Conclusion}
 
-Molecular benchmarks (H4, O2/O3)
-H4: AFQMC(VQE) systematically improves VQE energies and tracks FCI closely, but does not attain chemical accuracy across all geometries.
-O2/O3: AFQMC with CAS trials yields relative energies within or near chemical accuracy; caveats include AFQMC statistical error propagation, CBS extrapolation from limited basis points, and ZPVE consistency
+In this work, we have elucidated the effect of finite measurement statistics in the hybrid QC-AFQMC algorithm, where a classically intractable trial wave function is implemented on a quantum computer, and overlaps with walker states are extracted through measurements to feed into subsequent Monte Carlo steps. We investigated measurement schemes including the Hadamard test and three variants of classical shadows using unitary ensembles of Clifford circuits, matchgate circuits, and particle-number constrained matchgates. We reviewed analytical variance bounds and actual behavior on test systems, revealing that practical performance is often more optimistic than analytical bounds suggest.
+We studied shot noise effects from finite measurement statistics using Gaussian error propagation techniques and applied this error model to simulated QC-AFQMC benchmarks. Our results reveal that the scheme shows noise robustness, with smaller-scale systems achieving chemical accuracy even with error levels of $\epsilon = 10^{-2}$, performing similarly to the noiseless case. Gaussian error propagation showed that energy estimate errors depend on the Hamiltonian's 2-norm.
+Our summary of quantum and classical costs for classical shadow implementations reveals that classical post-processing scales with prohibitively high polynomial order: $\mathcal{O}(N^9)$ for matchgate shadows and $\mathcal{O}(N^{10})$ for orbital rotation shadows. This high classical cost motivates a fairer comparison between QC-AFQMC and classical AFQMC, where classical AFQMC could use costlier trial wave functions, like selected CI or low-bond dimension DMRG states, to match the quantum-classical post-processing cost. On a practical note, despite their exponential scaling, Clifford shadows were fastest in our numerical evaluations because their operations were easily parallelizable, unlike the Pfaffian interpolations required for matchgate shadows. A better software ecosystem for matchgate shadows would be beneficial.
+For industrial applications of QC-AFQMC, it is imperative to either reduce overall computational requirements to lower polynomial complexity or identify relevant molecules where such high computational cost is economically justified.
 
-Materials benchmark (CuBr2→1D Hubbard-like model)
-Trial-state quality and symmetry matter: higher-fidelity MPS trials need not yield better AFQMC energies than symmetry-preserving HF; the structure of the trial state (symmetries) can dominate performance.
-
-Key takeaways
-For molecules, QC‑AFQMC with high-quality small active-space trials is promising against industrially relevant targets; for lattice models, enforce symmetries and physical structure in trials; integration into workflows and robust ZPVE/forces remain as practical bottlenecks to address.
-
-\subsection{Scaling study:}
-
-QC‑AFQMC requires many overlaps between the quantum trial state and evolving (non‑orthogonal) Slater-determinant walkers; evaluate measurement and classical post-processing costs, error propagation, and scaling.
-
-Where overlaps appear and how many
-Importance sampling and force bias require $O(N^2)$ per walker per step; local energy is periodic but dominant, $O(N^3)$ with factorization; aggregate across walkers/blocks yields substantial measurement burdens
-
-Measurement schemes
-Hadamard test: direct overlap estimation, but controlled-state preparation increases circuit depth; sampling independent of N, but impractical for NISQ depth and per‑overlap repetition.
-Classical shadows:
-Clifford shadows: few shots for many observables, but exponentially costly classical post‑processing for Slater‑determinant overlaps.
-Matchgate shadows: polynomial classical post‑processing via Pfaffian interpolation; polynomial shot complexity; efficient for Slater determinant overlaps.
-%Orbital-rotation shadows: particle‑number‑preserving ensemble; shot variance scales with particle number η and can decrease with N; needs ancillas and deeper circuits; efficient in $\eta$ with adapted interpolation methods.
-
-Statistical behavior and covariances
-Overlap estimates are near‑Gaussian and exhibit shot‑noise scaling with the number of snapshots; covariances arise when reusing shadows for correlated walker states over imaginary time and should be mitigated by resampling/reblocking techniques.
-
-
-Error propagation and end‑to‑end cost
-Derive how overlap errors propagate into local energy and final AFQMC energy; errors scale with Hamiltonian 2‑norm, not 1‑norm as in VQE; trading quantum shots vs. classical walkers/blocks can compensate within limits.
-Overall, combining measurement and classical post‑processing leads to an $O(N^9)$ per‑walker scaling for QC‑AFQMC overlap estimation pipelines under state‑of‑the‑art schemes.
-Numerical demonstrations
-H4 and H2O with QNP‑VQE trials: AFQMC remains accurate up to noise thresholds (~1e‑2–1e‑3 overlap error), but full‑pipeline noise (propagation + local energy) is more damaging than propagation‑only; larger bases (cc‑pVDZ/VTZ) highlight sensitivity to overlap noise in propagation.
-
-key takeaways 
-
+Since the publication of our works \cite{amsler2023classical, kiser2024classical}, several groups have published follow-up studies \cite{kanno2024quantum, danilov2025enhancing, blunt2025quantum, kiser2025contextual, huang2024evaluating} supporting a more optimistic outlook. Notably, Ref.~\cite{jiang2024improved} introduced AFQMC with matrix product state trial wave functions and, more importantly, devised an approximation for local energy and force-bias estimation that scales as only $\mathcal{O}(N^{4-5})$. Ref.~\cite{zhao2025quantum} implemented this improved scheme experimentally on trapped ion hardware, representing the largest QC-AFQMC experimental implementation to date involving 24 qubits, and reported significant speed improvements using GPU processing for the involved classical computations, pushing the state-of-the-art of QC-AFQMC closer to practical advantages. 
 \end{document}

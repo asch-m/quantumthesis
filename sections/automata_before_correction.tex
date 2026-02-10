@@ -497,7 +497,7 @@ This allows us to connect minimality to minimal solutions of DFA-induced promise
 
 
 \subsection{Minimal solution to the DFA-induced PP in solvation mode}
-While arguing minimal solutions to the promise problem in recognition mode is somewhat trivial, we observe subtleties when studying solutions to DFA-induced promise problems in solvation mode -- the more relevant scenario for gate certification applications. It is easy to see that a minimal automaton in the Hopcroft sense is inadequate for arguing the minimality of promise problems in solvation mode. Consider a cyclic graph of length 6, $\mathcal{C}_6$, with the initial state as accepting and the third state as rejecting. This induces the promise problem $\mathtt{PP}(\mathcal{C}_6) = (\{0,6,12,\dots \},\{3,9,15,\dots\})$ (cf. Fig.~\ref{fig:min6}). We argue the minimality of the language-defining DFAs, starting with the yes-language. In the yes-language, only the initial state is accepting. All non-accepting states are distinguishable from the initial state and from each other because it is always possible to find a word mapping one of the investigated state pairs to the initial state in a cyclic graph. Hence, such a DFA would be minimal in recognition mode. However, from our previous intuitions, we know this unary promise problem is solvable with just two states since a $\bmod 2$ operation alone suffices to differentiate between even and odd input lengths; thus, the yes- and no-languages. 
+While arguing minimal solutions to the promise problem in recognition mode is somewhat trivial, we observe subtleties when studying solutions to DFA-induced promise problems in solvation mode—the more relevant scenario for gate certification applications. It is easy to see that a minimal automaton in the Hopcroft sense is inadequate for arguing the minimality of promise problems in solvation mode. Consider a cyclic graph of length 6, $\mathcal{C}_6$, with the initial state as accepting and the third state as rejecting. This induces the promise problem $\mathtt{PP}(\mathcal{C}_6) = (\{0,6,12,\dots \},\{3,9,15,\dots\})$ (cf. Fig.~\ref{fig:min6}). We argue the minimality of the language-defining DFAs, starting with the yes-language. In the yes-language, only the initial state is accepting. All non-accepting states are distinguishable from the initial state and from each other because it is always possible to find a word mapping one of the investigated state pairs to the initial state in a cyclic graph. Hence, such a DFA would be minimal in recognition mode. However, from our previous intuitions, we know this unary promise problem is solvable with just two states since a $\bmod 2$ operation alone suffices to differentiate between even and odd input lengths; thus, the yes- and no-languages. 
 
 The fallacy was demanding minimality in recognition mode -- while the $\mathcal{C}_6$ automaton is indeed minimal when producing exactly this language, the promise problem in solvation mode poses a different question. In solvation mode, since we restrict the input given to the automaton to the promise languages, it is never required that the automaton accepts or rejects  \textit{exclusively} the promise languages. An automaton $\mathcal{A}$ that includes the promise language as a subset of its accepted language $\mathtt{PP_{yes}} \subseteq \mathcal{L}(\mathcal{A})$ will solve the promise problem if the accepted language does not overlap with the promised no-language $\mathcal{L}(\mathcal{A}) \cup \mathtt{PP_{no}} = \emptyset$. Thus, the actual question when seeking the solution automaton in solvation mode is: 
 \begin{displayquote}
@@ -595,11 +595,11 @@ As shown in Fig.~\ref{fig:minsolv6}, Algorithm \ref{alg:mindfasolv} successfully
 
 From this example, we can also infer the effect of the promise-version Hopcroft algorithm on the processed automaton. Merging two states is only allowed if these states are indistinguishable, i.e., no word would map these states to differently labeled states. For automata defined from finite groups, this is only possible if these states can be associated with the same element in a subgroup of the group underlying the automaton. Also, needless to say, these states associated with the same element of the subgroup have to be of the same type (i.e., $\mathtt{accept}$ or reject). Let us examine that statement in the case of the $\mathcal{C}_6$ example, which is equivalent to the $\mathbb{Z}/\mathbb{Z}_6$ Cayley graph. According to Lagrange's theorem, subgroups of $\mathbb{Z}/\mathbb{Z}_6$ are $\mathbb{Z}/\mathbb{Z}_2$ and $\mathbb{Z}/\mathbb{Z}_3$. To merge $\mathbb{Z}/\mathbb{Z}_6$ into a $\mathbb{Z}/\mathbb{Z}_3$ graph, every third state must belong to the same label -- this cannot be achieved since the initial state and the $\mathtt{reject}$  state are also three states away. However, $\mathbb{Z}/\mathbb{Z}_2$ is compatible, and that is why the promise-version Hopcroft algorithm outputs a two-state solution.
 
-{\color{red}Can we, however, guarantee that no other automaton -- possibly not generated via minimizing the promise problem inducing \ac{DFA} -- solves the promise problem? We argue affirmatively for DFA-induced promise problems when the DFA describes an \changed{abelian group language, which occurs when the transition function $\delta$ is not only a one-to-one function but also invariant under permutations of the letters in the input string. This is relevant for quantum-inspired problems where we either study a single gate or a set of commuting gates. For more general group languages, we indicate where our reasoning breaks down, but we leave as a conjecture the claim that the promise-version of the Hopcroft algorithm converges to the absolutely minimal solution to such non-abelian quantum-inspired promise problems as well. Nevertheless, we already emphasize that the ability of the promise-version Hopcroft algorithm to identify subgroup structures that may also solve the promise problem is a useful algorithmic tool for excluding certain quantum models from QSQ eligibility, as will be explained later.}
+Can we, however, guarantee that no other automaton -- possibly not generated via minimizing the promise problem inducing \ac{DFA} -- solves the promise problem? We argue affirmatively for DFA-induced promise problems when the DFA describes a group language, which occurs when defining a DFA from a QFA. For more general cases, we identify where our group language argumentation fails but leave this as a conjecture.
 
-Let us start with a restrictive choice of \changed{an abelian} group-language DFA (that is, a DFA defined from a finite group):
+Let us start with a restrictive choice of a group-language DFA (that is, a DFA defined from a finite group):
 \begin{proposition}\label{prop:minsolvation}
-    The DFA solving a promise problem $\mathtt{PP}(\mathcal{A})$, is given by the minimal automaton of $\mathcal{A}$ in solvation mode computed with Algorithm \ref{alg:mindfasolv}. We assume the case where $\mathcal{A}$ is a finite \changed{abelian} group automaton and has one $\mathtt{accept}$ state $s_0$, which is also the initial state, and one $\mathtt{reject}$  state $s_r$.
+    The DFA solving a promise problem $\mathtt{PP}(\mathcal{A})$, is given by the minimal automaton of $\mathcal{A}$ in solvation mode computed with Algorithm \ref{alg:mindfasolv}. We assume the case where $\mathcal{A}$ is a finite-group automaton and has one $\mathtt{accept}$ state $s_0$, which is also the initial state, and one $\mathtt{reject}$  state $s_r$.
 \end{proposition}
 
 \begin{proof}
@@ -613,7 +613,7 @@ Let us start with a restrictive choice of \changed{an abelian} group-language DF
 
  %   Since $\mathcal{A}$ is a group language automaton with bijective transitions corresponding to a finite group, define 
     Define the languages $\mathcal{L}(b_i) = \{w \in \Sigma^* | \delta(b_0, w) = b_i \}$ for any state $b_i$ in $\mathcal{B}$. Since the empty word belongs to the yes-language, $\mathcal{B}$'s initial state must be accepting. We assume $b_0$ is not a tail state, i.e., $\mathcal{L}(b_0)$ contains infinitely many words. If not, we call the next closest non-tail $\mathtt{accept}$ state $b_0$. Such a state must exist, since $\mathcal{B}$ needs to at least accept infinite $\mathcal{L}(\mathcal{A})$.
-    We next make use of the fact that $\mathcal{A}$ is a finite-group automaton by considering the ``order'' of a word. We say a word $w$ is order-$k$, if $\delta(s_0,w^k)=s_0$ and no smaller $k$ would fulfill the equation. 
+    We next make use of the fact that $\mathcal{A}$ is a finite-group automaton by considering the ``order'' of a word. We say a word $w$ is order-$k$, if $\delta(s_0,w^k)=s_0$ and no smaller $k$ would fulfill the equation.
     In $\mathcal{A}$, the yes-language $\mathcal{L}(a_0)$ contains words which are strictly ``order-1 elements'', since any word $w \in \mathcal{L}(a_0)$ maps back to the initial state $\delta(s_0, w) = s_0$, while $\mathcal{L}(a_i)$ contains words of higher orders, $w \in \mathcal{L}(a_i)$, $i \neq 0$, $\delta(s_0, w) \neq s_0$, but $\delta(s_0, w^n) = s_0$ for some $n \neq 1$. The $\mathtt{accept}$ language of $\mathcal{B}$, $\mathcal{L}(\mathcal{B})$, however, may contain beyond order-1 words of $\mathcal{A}$ since solvation mode permits $\mathcal{L}(a_0) \subseteq \mathcal{L}(\mathcal{B})$.
     
     Since any repetition of $w \in \mathcal{L}(b_0)$ remains in $ w^k \in \mathcal{L}(b_0)$, the language $\mathcal{L}(\mathcal{B})$ cannot overlap with $\mathcal{L}(a_i)$ for ``generating orders'' of $\mathcal{A}$. Any such overlap would allow repeated application to reach every state in $\mathcal{A}$, including the $\mathtt{reject}$  state, contradicting the assumption $\mathcal{B}$ being a valid promise problem solution.
@@ -622,14 +622,13 @@ Let us start with a restrictive choice of \changed{an abelian} group-language DF
     Conclusively, the minimal solution to $\mathtt{PP}(\mathcal{A})$ is the minimal-order subgroup of $\mathcal{A}$ not prohibited by $a_r$'s choice. Since our algorithm produces this exact subgroup, no smaller automaton exists. 
 \end{proof}
 
-The above proof does not hold for arbitrary DFAs, since we cannot apply group-theoretic arguments in general.}
+The above proof does not hold for arbitrary DFAs, since we cannot apply group-theoretic arguments in general.
 
 We note here that this kind of promise problem has been discussed under different terminology, and without any remark on quantum finite-state automata, under the name of "separation problem" in Ref.~\cite{place2022group}, where they showed explicitly for the class of group languages that the question whether, given two languages of the same graph, a third language within the same class exists that accepts the first and rejects the second, is decidable. This resembles exactly the setting of promise problems, especially with the restriction to group languages matching the quantum-inspired setting. Ref.~\cite{place2022group} stresses that this result has been shown previously also in the realm of abstract algebra \cite{ash1991inevitable}. In our work, we do not make any complexity-theoretic claim; we rather use the (potentially untractable, but decidable) minimization algorithm to discuss and comprehend the dimensional separation of promise problems better. Having developed an intuition for cases where group automata can be minimized, which is when all states associated with the same subgroup element have the same $\mathtt{accept}$ or $\mathtt{reject}$  label, we can apply this intuition to propose a constructive method to exclude certain promise problems from being valid QSQ protocols.
 
 For instance, it becomes evident why the gate $\sqrt[3]{Z}$ cannot be certifiedted within QSQ; as already mentioned, $\mathbb{Z}/\mathbb{Z}_6$ has two subgroups: $\mathbb{Z}/\mathbb{Z}_2$ and $\mathbb{Z}/\mathbb{Z}_3$. In the quantum-inspired examples, we assume that the gate to be investigated is some root of the $Z$ gate, which itself has order two, $Z^2 = \mathbbm{1}$. Measurements are demanded to be deterministic; thus, we construct our input sequences to result in either even or odd counts of $Z$. In other terms, in the unary promise problem, we defined from an order-two gate, i.e., the $Z$ gate, the root of order $k$ of the order-two gate, to define a group structure with order $2 \times k$. Since it is demanded that the initial state and the $k$-th state are distinguishable (associated with different outputs), the order-$k$ subgroup is prohibited from solving the promise problem. If 2 appears as a prime factor in $k$ with multiplicity $m$, that means also that all subgroups with order $k / 2^{m-1}$ for $m = 1, \ldots, m$ cannot be solutions to the promise problem.
 That means that we exclude, through the $\mathtt{accept}$/$\mathtt{reject}$  labelings of states, that certain subgroups cannot have generated the outputs demanded by the promise problem. This intuition allows us to formulate a necessary condition for valid QSQ protocols.
 
-{\color{red} We need to stress that this is a necessary condition because we have not shown completeness in our proofs, only for abelian groups. 
 \begin{theorem}
     A DFA-induced promise problem $\mathtt{PP}(\mathcal{A})$ for Quantum System Quizzing needs to be defined from a DFA $\mathcal{A}$ that is minimal in solvation mode with more than two states. 
 \end{theorem}
@@ -638,7 +637,7 @@ That means that we exclude, through the $\mathtt{accept}$/$\mathtt{reject}$  lab
     This follows directly from Proposition \ref{prop:minsolvation}. Since the minimized $\mathcal{A}$ in solvation mode is a solution to $\mathtt{PP}(\mathcal{A})$, too, if $\mathtt{PP}(\mathcal{A})$ was not defined from an already minimal automaton, we obtain two valid group automata solving the promise problem. Since these can be associated back to QFAs, yielding at least two different gates compatible with the demanded outputs, we cannot uniquely identify the underlying quantum model. Therefore, minimality in solvation mode is a necessary condition for a valid QSQ protocol.
     QSQ relies on a dimensional separation assumption between potential quantum and classical systems. If the classical DFA requires only dimension two, this separation assumption is not fulfilled.
 \end{proof}
-}
+
 We are now equipped with a criterion to propose potential QSQ protocols from gates generating finite groups. With this new tool at hand, we expand our investigation to the non-unary setting, where we discuss promise problems with both commuting and non-commuting gates or letters, and later extend to more general settings of multi-qubit unary problems and qudit systems.
 
 
@@ -746,7 +745,7 @@ We study the finite Clifford group, applied to $\ket{+}$ as the initial state. W
     \mathcal{A}_{sh} = (S = \{\ket{+}, \ket{-}, \ket{+_y}, \ket{-_y}, \ket{0}, \ket{1}\}, \Sigma = \{s,h\}, \delta, s_0, S_{yes} = \ket{+}, S_{no} = \ket{-}),
 \end{equation} where the transition function $\delta$ can be inferred form Fig.~\ref{fig:blochsh}.
 From $\mathcal{A}_{sh}$, we construct the following promise problem
-{\color{red}\begin{theorem}
+\begin{theorem}
 \label{def:sh}
     Consider the promise problem induced by $\mathcal{A}_{sh}$ (see. Fig.~\ref{fig:blochsh}), that is 
     \begin{align}
@@ -754,7 +753,7 @@ From $\mathcal{A}_{sh}$, we construct the following promise problem
                 \mathtt{PP}_{no}(\mathcal{C}) &= \{w \, | \, w \in \Sigma^* \land w \ket{+} = \ket{-} \}   
     \end{align}
     The promise problem inducing DFA is minimal in solvation mode and is thus the smallest DFA solving the promise problem.
-\end{theorem}}
+\end{theorem}
 
 \begin{proof}
     We use the promise-version Hopcroft's algorithm to argue the minimality of the Cayley graph in solvation mode. States $\ket{+}$ and $\ket{-}$ are final states with definite labels, and we show for all possible label assignments of the remaining states $\ket{+_y},\ket{-_y},\ket{0},\ket{1}$ that the DFA version of the Cayley graph is minimal, i.e., all states are reachable and distinguishable. Reachability is obvious; we proceed immediately to the check of distinguishability. In this case, distinguishability of all states follows because all pairs within the automaton are reachable from the distinguishable pair  $\ket{+}$, and $\ket{-}$: 
@@ -779,8 +778,6 @@ From $\mathcal{A}_{sh}$, we construct the following promise problem
         
         All states are distinguishable in solvation mode, and thus, the solution to the induced promise problem is given by the automaton itself.
 \end{proof}
-
-{\color{red} in this case we can show that in fact the 6 state DFA of... is the minimal DFA among all possible DFAs. Explain the construction.}
 
 Since the QFA clearly solves the same promise problem with only two state dimensions, we constructed a promise problem with state advantage for the quantum system from non-commuting gates. Ref.~\cite{noller2024classical} demonstrated a QSQ for Clifford group generators.
 We also note that DFA-induced promise problems can be formulated equivalently but differently using regular expressions, potentially offering greater insight depending on the background of the reader. Just as every regular language corresponds to a DFA and vice versa, both the yes- and no-languages can likewise be expressed in regular expression format. For the ${s,h}$ case, this becomes, for example,
@@ -989,7 +986,7 @@ To infer the smallest \ac{DFA} solution to $\mathtt{MUB^q}$, let us study whethe
     
     This cluster cannot be made compatible with the indistinguishable cluster, since the clusters are only mergeable if $l_{\ket{0}}= l_{\delta(\ket{0},H_q)}$ and $l_{\ket{1}}= l_{\delta(\ket{1},H_q)}$, but we know $l_{\ket{0}} \neq l_{\ket{1}}$, so this cluster is not mergeable. We have $\frac{q-1}{2}$ such clusters, and these conflicting equations can be constructed analogously. Thus, $\mathcal{A}^{MUB}_{q}$ is minimal in solvation mode.
 \end{proof}
-$\mathtt{MUB^q}$ is by definition solved by a \ac{QFA} with $|Q| = q$, thus we have {\color{red} at most a} quadratic dimension advantage in the quantum case. We conjecture that such protocols can be used to certify $q$-dimensional quantum models.
+$\mathtt{MUB^q}$ is by definition solved by a \ac{QFA} with $|Q| = q$, thus we have a quadratic dimension advantage in the quantum case. We conjecture that such protocols can be used to certify $q$-dimensional quantum models.
 
 \section{Finite promise problems}
 

@@ -63,9 +63,9 @@
 %%%%%%%%%%%%%%%%%%%
 \usepackage[german,main=english]{babel}% german has to be loaded as the titlepage is always in German
 \usepackage{microtype}
+\usepackage[utf8]{inputenc}
 \usepackage[autostyle]{csquotes}% \enquote, to simplify use of quotation marks
 
-\usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{amsmath}
 \usepackage{amssymb}
@@ -80,6 +80,7 @@
 \usepackage{bm}
 \usepackage{marvosym}
 \usepackage{enumerate}
+\usepackage[version=4]{mhchem}
 
 %\usepackage{braket}
 \usepackage{xcolor}
@@ -120,7 +121,7 @@
 \DeclareMathOperator{\LandauO}{\mathcal{O}} % Landau big-O notation
 \DeclareMathOperator{\Landauo}{\mathrm{o}} % Landau small-O notation
 \DeclareMathSymbol{\mhyphen}{\mathord}{AMSa}{"39}
-\renewcommand{\AA}{\mathrm{A}}
+%\renewcommand{\AA}{\mathrm{A}}
 
 %\usepackage{titlepic}
 
@@ -132,7 +133,8 @@
 \newtheorem{folklore}{Folklore}
 \newtheorem{exampl}{Example}
 
-\newcommand{\XX}{\mathrm{X}}
+%\newcommand{\XX}{\mathrm{X}}
+%\newcommand{\AA}{\mathrm{A}}
 \newcommand{\argdot}{\,\cdot\,}
 \newcommand{\bigO}{\mathcal{O}}
 
@@ -145,13 +147,14 @@
 \newcommand{\jan}[1]{{\color{jan} #1}}
 \definecolor{mari}{rgb}{1.0, 0.0, 0.22}
 \newcommand{\mari}[1]{{\color{mari} #1}}
-
+\definecolor{changed}{rgb}{0, 95, 106}
+\newcommand{\changed}[1]{{\color{changed} #1}}
 %%%%%%%%%%%%%%%%%%%
 % Bibliography
 %%%%%%%%%%%%%%%%%%%
-\usepackage[maxnames=5]{biblatex}
+\usepackage[backend=biber, defernumbers=true, sorting=none, maxnames=5]{biblatex}
 \addbibresource{refs.bib}% File name of BibTeX database
-
+\addbibresource{mypubs.bib}
 
 
 \newcommand*{\boldname}[3]{%
@@ -196,8 +199,8 @@
 %%%%%%%%%%%%%%%%%%%
 %\usepackage{mathtools}% Extended version of amsmath
 %\usepackage{amssymb}% Additional symbols
-%\usepackage{siunitx}% Numbers and Units
-
+\usepackage{siunitx}% Numbers and Units
+ \usepackage{multirow}
 \usepackage{graphicx}
 \graphicspath{{images/}}
 \usepackage{acronym}
@@ -213,11 +216,11 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\title{My PhD Thesis TBA}
-\subtitle{Something about quantum}
+\title{From Ground States to Certification}
+\subtitle{ Quantum Advantages in Hybrid Algorithms and \\ Promise Problems}
 \author{Anna Schroeder}
-\birthplace{Darmstadt, Germany}
-\reviewer{Reviewer 1 \and Reviewer 2 \and …}
+\birthplace{Darmstadt}
+\reviewer{Prof. Dr. Mariami Gachechiladze \and Prof. Dr. Jakob Kottmann}
 % For further customization
 %\reviewer*[Supervisor, Reviewer]{Supervisor 1 \and Reviewer 2}
 %\titlepic{\includegraphics[width=0.2\textwidth]{images/automata/2dsol.pdf}}
@@ -233,12 +236,14 @@
 %\institute{Fachberech Informatik}
 \group{Quantum Computing Group}
 
-\submissiondate{\today}
-\examdate{\today}
+\submissiondate{25. September 2025}
+\examdate{10. Dezember 2025}
 
 %\tuprints{urn=XXXXX,printid=XXXX,year=2022,license=cc-by-4.0}% License information for TUprints
 
-\dedication{To simplify your work with \TeX{} \& Friends.}
+%\dedication{To simplify your work with \TeX{} \& Friends.}
+
+\setkomafont{subtitle}{\fontsize{19}{20}\bfseries}
 
 \begin{document}
 
@@ -249,21 +254,39 @@
 
 \affidavit% Please ensure you use the correct version.
 \begin{abstract}
-	Abstract using the document main languge (here English)
+This thesis investigates the emergence of quantum advantages from several perspectives. First, we study the variational quantum eigensolver (VQE), a hybrid algorithm suitable for noisy intermediate-scale quantum devices. We propose a deterministic formulation of measurement-based quantum computing that offers inherent trade-offs between qubit count and circuit depth compared to conventional gate-based approaches, avoiding the exponential sampling complexity of previously proposed formulations.
+
+We evaluate VQE in two use cases. For quantum chemistry, we employ VQE ground state approximations as trial wavefunctions for quantum Monte Carlo calculations to estimate more accurate ground states. While achieving higher accuracies, we demonstrate that transferring quantum data to classical computers introduces an overhead scaling as high as $N^9$ in the system size $N$, raising questions about the practicality for system sizes where a quantum computer shall be employed.
+
+The second use case explores machine learning tasks with classical data in natural language processing and computer vision. We propose a physics-inspired data encoding method that shifts encoding from upload in a quantum circuit to measurements, thereby reducing the circuit depth for state preparation. While its performance matches that of alternative quantum machine learning models, it does not surpass classical approaches, highlighting performance gaps that require future work.
+
+Finally, we examine theoretically proven quantum advantages in promise problems for language recognition using deterministic state automata. Building on known exponential advantages, we propose a scheme to identify new promise problems with quantum advantages and discuss frameworks leveraging this advantage for sound certification of quantum models, including necessary arguments for quantum models that can be certified within this framework. This leads to a better understanding of the first complete, sound, and state-preparation and measurement error-free semi-device-independent certification, opening new research directions.
+
 \end{abstract}
 
 \begin{abstract}[german]
-	Weitere Zusammenfassung in einer anderen Sprache (hier Deutsch), sofern benötigt.
+In dieser Arbeit untersuchen wir das Auftreten von Quantenvorteilen aus verschiedenen Perspektiven. Zunächst analysieren wir den Variational Quantum Eigensolver (VQE), einen hybriden Algorithmus für verrauschte Quantencomputer mittlerer Skalierung. Wir entwickeln eine deterministische Formulierung des VQE für das messungsbasierte Quantenrechnen. Dieses ermöglicht im Vergleich zu konventionellen gatterbasierten Verfahren Kompromisse zwischen der Qubit-Anzahl und der Schaltkreistiefe und weist dabei eine exponentiell geringere Sampling-Komplexität als ein vorheriger Entwurf auf.
+
+VQE wird in zwei Anwendungsgebieten evaluiert. In der Quantenchemie nutzen wir Grundzustandsapproximationen aus einer VQE-Rechnung als Testwellenfunktionen für Quanten-Monte-Carlo-Rechnungen, um genauere Grundzustände zu bestimmen. Trotz der höheren Genauigkeit zeigen wir, dass die Datenübertragung vom Quantencomputer zum klassischen Rechner einen klassischen Mehraufwand von bis zu $N^9$ in der Systemgröße $N$ verursacht. Dies stellt die Praktikabilität für Systemgrößen infrage, bei denen Quantencomputer zum Einsatz kommen sollen.
+
+Das zweite Anwendungsgebiet umfasst maschinelles Lernen mit klassischen Daten aus der Sprachverarbeitung und Computer Vision. Wir stellen eine physikalisch motivierte Datenkodierungsmethode vor. Diese verlagert die Kodierung von der Schaltkreisimplementierung auf Messungen und reduziert dadurch die Schaltkreistiefe für die Zustandspräparation. Obwohl die Leistung mit anderen quantenmaschinellen Lernmodellen vergleichbar ist, werden klassische Verfahren nicht übertroffen, was bestehende Defizite verdeutlicht.
+
+Abschließend betrachten wir theoretisch bewiesene Quantenvorteile bei sogenannten Promise-Problemen der Spracherkennung mit deterministischen Zustandsautomaten. Aufbauend auf bekannten exponentiellen Vorteilen entwickeln wir ein Verfahren zur Identifikation neuer Promise-Probleme mit Quantenvorteilen und erörtern, wie sich dieser Vorteil für eine verlässliche Zertifizierung von Quantenmodellen nutzen lässt. Dies führt zu einem besseren Verständnis der ersten vollständigen, korrekten und SPAM-Fehler freien semi-geräteunabhängigen Zertifizierung und eröffnet somit neue Forschungsrichtungen.
 \end{abstract}
 
-\begin{refsection}[mypubs.bib]
-    \toggletrue{bbx:allnames}
-    \nocite{*}
-    \setcounter{enumiv}{0} % Reset numbering
-    \newrefcontext[labelprefix=P]  
-    \printbibliography[keyword=myPapers,title={List of Publications}, resetnumbers=true]
-    \togglefalse{bbx:allnames}
-\end{refsection}
+%\begin{refsection}[mypubs.bib]
+%    \toggletrue{bbx:allnames}
+%    \nocite{*}
+%    \setcounter{enumiv}{0} % Reset numbering
+%    \newrefcontext[labelprefix=P]  
+%    \printbibliography[keyword=myPapers, title={List of Publications}, resetnumbers=true]
+%    \togglefalse{bbx:allnames}
+%\end{refsection}
+
+\toggletrue{bbx:allnames}
+\newrefcontext[labelprefix=P]
+\printbibliography[keyword=myPapers, title={List of Publications and Preprints}]
+\togglefalse{bbx:allnames}
 
 \tableofcontents
 % Additional lists like \listoffigures or acronyms might be added here
@@ -274,7 +297,6 @@
 \chapter{Introduction}
 \subfile{sections/introduction}
 
-\chapter{Deterministic measurement-based variational quantum algorithm}
 
 \subfile{sections/mbvqe}
 
@@ -282,8 +304,6 @@
 
 \subfile{sections/qnlp}
 
-
-\chapter{Benchmarking Quantum Computer with Automata Advantage}
 \subfile{sections/automata}
 
 \appendix
@@ -294,7 +314,13 @@
 \chapter{Acronyms}
 \input{acronyms}
 
-\printbibliography
+\cleardoublepage
+\chapter*{Acknowledgments}
+\subfile{sections/acknowledgement}
+\clearpage
+
+\newrefcontext[labelprefix=]
+\printbibliography[notkeyword=myPapers]
 
 \end{document}
 %% End of file `DEMO-TUDaPhD.tex'.
