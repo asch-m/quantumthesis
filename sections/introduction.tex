@@ -1,14 +1,6 @@
 \documentclass[../main.tex]{subfiles}
 \graphicspath{{\subfix{../images/}}}
 \begin{document}
-% \textbf{Hello world!}
-% \begin{figure}[bh]
-% \centering
-% \includegraphics[width=3cm]{automata/tautomata.pdf}
-
-% \label{fig:img1}
-% \caption{Overleaf logo}
-% \end{figure}
 
 \section{Preface}
 
@@ -262,19 +254,5 @@ This thesis approaches \ac{VQE} from two perspectives: implementation and applic
 Regarding \textit{implementation}, while quantum computation is typically discussed with \ac{GBQC} in mind, there exists an equivalent but different formulation of quantum computing called \ac{MBQC} \cite{raussendorf2003measurement}. This approach implements quantum computing through quantum gate teleportation on large pre-prepared entangled resource states rather than sequential gate applications on static qubits. This paradigm offers an inherent gate-depth to qubit-count trade-off compared to \ac{GBQC}. Our work presented in \cite{schroeder2024deterministic} builds upon the primary proposal of \ac{MBVQE} \cite{ferguson2021measurement} and is replicated in Chapter~\ref{chap:mbvqe}.
 
 The second perspective concerns \textit{application}. Given the aforementioned challenges, it appears infeasible to expect \ac{VQE} to become practically viable for directly estimating ground state energies in the near term. However, ideas have emerged to use \ac{VQE} to generate quantumly efficient but classically intractable trial wave functions for classical workflows. Specifically, a quantum-enhanced auxiliary-field quantum Monte Carlo method has been proposed in Ref.~\cite{huggins2022unbiasing}. Within \ac{QUTAC}, the author investigated the efficacy and applicability of this approach on industrially motivated test systems, resulting in two publications. These results are summarized in Chapter~\ref{chap:chem}, together with a brief introduction to quantum chemistry in the quantum computing context. Additionally, a more ``classical'' use case for \ac{VQE} has been explored in \ac{NLP} through an intra-university collaboration, yielding one publication that will be discussed with a focus on classical data encoding in Chapter~\ref{chap:qnlp}.
-
-
-
-%There are a few proposals for the classical optimization of the cost function: \mari{Give the options as below, but which one do you choose and why?}
-
-%Stochastic gradient descent methods and resource frugal adaptions have been proposed \cite{kingma2014adam} \cite{kubler2020adaptive}. Another method is the quantum natural gradient descent method, which takes the information geometry of quantum states into account \cite{stokes2020quantum}. There are also non-gradient methods, such as the simultaneous perturbation stochastic approximation (SPSA) method \cite{spall1992multivariate}. A popular choice, however, is COBYLA, Constrained Optimization BY Linear Approximation, a well-established optimizer operating gradient-free \cite{powell1994direct}.
-
-% Since the optimization process is cast to classical hardware, VQEs enjoy reduced circuit complexity in terms of depth, which makes it a promising candidate for quantum practicality in the NISQ era \cite{preskill2018quantum}. 
-%  On the other hand, there are known fundamental limitations regarding its trainability. It has been reported that the gradient of the cost function vanishes exponentially with the number of qubits \cite{mcclean2018barren}, which renders the training of circuits exceeding the size of toy problems unfeasible.
-
-% Nonetheless, VQEs offer a highly versatile toolbox that can be utilized today - with the hope of finding practical usage, e.g., in subroutines of complex algorithms such as AFQMC \cite{huggins2022unbiasing}. 
-
-
-
 
 \end{document}
