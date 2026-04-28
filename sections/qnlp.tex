@@ -1,14 +1,6 @@
 \documentclass[../main.tex]{subfiles}
 \graphicspath{{\subfix{../images/}}}
 \begin{document}
-% \textbf{Hello world!}
-% \begin{figure}[bh]
-% \centering
-% \includegraphics[width=3cm]{automata/tautomata.pdf}
-
-% \label{fig:img1}
-% \caption{Overleaf logo}
-% \end{figure}
 
 \chapter{Application of VQE II: Natural Language Processing}\label{chap:qnlp}
 
@@ -174,7 +166,6 @@ QLSTM  & 2766       & 89.9 & 84.4    & 4679     & 76.8 & 67.9 & 3582     & 87.2 
 \hline
 HAM     & 130854    & 91.2 & 82.3   & 130926    & 91.0    & 88.1 & -        & -    & - \\
 PEFF    & 410       & 81.8 & 80.0    & 410  & 84.0    & 83.8 & -        & -    & - \\
-% old_SIM     & 9410      & 84.5 & 80.1    & 3332     & 89.8 & 89.3 \\
 SIM     & 1338      & 80.6 & 79.0    & 1410     & 86.0 & 85.3 & 4416     & 89.4 & 88.6 \\
 \bottomrule
 \end{tabular}
@@ -200,7 +191,6 @@ QCNN & 169 & 84.9 & 84.7 & 558 & 76.7 & 76.3 \\
 \hline
 HAM & 523818 & 89.6 & 81.0 & - & - & - \\
 PEFF & 1056 & 79.3 & 78.7 & - & - & -  \\
-% old_SIM & 3840 & 99.4 & 99.9 & 6822 & 85.9 & 83.9 \\
 SIM & 2156 & 68.9 & 68.2 & 10934 & 87.6 & 84.4 \\
 \bottomrule
 \end{tabular}
@@ -222,26 +212,22 @@ In the image classification tasks, we observe that these represent more challeng
         \includegraphics[width=\textwidth]{images/qnlp/pauli_agnews_test_accuracy.pdf}
         \captionsetup{justification=centering}
         \caption{}
-        %\label{fig:placeholder}
     \end{subfigure}\hfill\begin{subfigure}[t]{0.5\linewidth}
         \centering
         \includegraphics[width=\textwidth]{images/qnlp/pauli_agnews_train_accuracy.pdf}
         \captionsetup{justification=centering}
         \caption{}
-        %\label{fig:placeholder}
     \end{subfigure}
         \begin{subfigure}[t]{0.5\linewidth}
         \centering
         \includegraphics[width=\textwidth]{images/qnlp/pauli_fashion_test_accuracy.pdf}
         \captionsetup{justification=centering}
         \caption{}
-        %\label{fig:placeholder}
     \end{subfigure}\hfill\begin{subfigure}[t]{0.5\linewidth}
         \centering
         \includegraphics[width=\textwidth]{images/qnlp/pauli_fashion_train_accuracy.pdf}
         \captionsetup{justification=centering}
         \caption{}
-        %\label{fig:placeholder}
     \end{subfigure}
     \caption{The accuracy of multi-class classification tasks depending on the number of considered Pauli strings in SIM. The training and test accuracies are plotted for the AG News and FashionMNIST tasks. We observe a strictly increasing relationship between the Pauli string count and accuracy, which seems to approach some saturation point. This is great evidence that not all $4^n$ Pauli strings need to be considered as in HAM, but a substantially smaller subset suffices as in SIM. Figures are taken from  \cite{tiblias2025an}}
     \label{fig:accuracyPauli}
