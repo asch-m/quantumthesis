@@ -45,7 +45,7 @@
 	ruledheaders=chapter,% Section levels above this one will follow the ruled layout, see DEMO-TUDaPub
 	class=book,% Choose the base document class. Will choose the matching KOMA-Script class
 	thesis={% PhD thesis. For smaller theses have a look at DEMO-TUDaThesis.tex
-		type=dr,
+		type=drfinal,
 		dr=rernat
 	},
 	fontsize=11pt,% Basic font size. CI default setting of 9pt is too small for theses
@@ -67,6 +67,7 @@
 \usepackage[autostyle]{csquotes}% \enquote, to simplify use of quotation marks
 
 \usepackage[T1]{fontenc}
+\usepackage{lmodern}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{bbm}
@@ -214,7 +215,7 @@
 \title{From Ground States to Certification}
 \subtitle{ Quantum Advantages in Hybrid Algorithms and \\ Promise Problems}
 \author{Anna Schroeder}
-\birthplace{Darmstadt}
+%\birthplace{Darmstadt}
 \reviewer{Prof. Dr. Mariami Gachechiladze \and Prof. Dr. Jakob Kottmann}
 \publishers{Darmstadt, Technische Universität Darmstadt}
 % For location or publisher. It is predefined as “Darmstadt, Technische Universität Darmstadt” as required by the library.
@@ -230,7 +231,7 @@
 \submissiondate{25. September 2025}
 \examdate{10. Dezember 2025}
 
-%\tuprints{urn=XXXXX,printid=XXXX,year=2022,license=cc-by-4.0}% License information for TUprints
+\tuprints{year=2026,license=cc-by-4.0}% License information for TUprints
 
 %\dedication{To simplify your work with \TeX{} \& Friends.}
 
