@@ -341,7 +341,7 @@ In Fig.~\ref{fig:h4_curve}(top), we show AFQMC energies alongside restricted Har
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.7\linewidth]{images/afqmc/h4_curve.pdf}
+\includegraphics[width=0.7\linewidth]{images/afqmc/h4_curve.png}
 \caption{(top) Energy surface of the \ce{H4} square with varying side length of the square. For this calculation, a minimal basis STO-3G was used. It should be noted that the FCI and VQE curves are hard to distinguish because of the scale of the y-axis and their similarity to the AFQMC(VQE) results. (bottom) The error of the ground state estimate of plain VQE and AFQMC(VQE) w.r.t.\ the true ground state energy. The error bars stem from the statistical MC errors. This figure is taken from \cite{amsler2023classical}.}
 \label{fig:h4_curve}
 \end{figure}
@@ -628,13 +628,13 @@ The factors of 4 for matchgate and orbital rotation shadows in the analytical bo
 \begin{figure}
     \centering  
     \begin{subfigure}{0.45\textwidth}
-    \includegraphics[width=\textwidth]{images/finite_meas/matchgate_overlap_estimates.pdf}
+    \includegraphics[width=\textwidth]{images/finite_meas/matchgate_overlap_estimates.png}
     \caption{Matchgate shadows}
         \label{fig:matchgate_scaling_variance}
     \end{subfigure}
 
     \begin{subfigure}{0.45\textwidth}
-            \centering  \includegraphics[width=\textwidth]{images/finite_meas/clifford_overlap_estimates.pdf}       
+            \centering  \includegraphics[width=\textwidth]{images/finite_meas/clifford_overlap_estimates.png}       
             \caption{Clifford shadows}
             \label{fig:clifford_scaling_varince}
     \end{subfigure}
@@ -702,7 +702,7 @@ We note that higher fluctuations in local energy estimation might also be due to
 
 \begin{figure}
 \centering
-    \includegraphics[width=0.7\columnwidth]{images/finite_meas/H4_H2O.pdf}
+    \includegraphics[width=0.7\columnwidth]{images/finite_meas/H4_H2O.png}
     \caption{AFQMC energy estimates for two systems: (top) the $\ce{H4}$ square in STO-3G basis set, and (bottom) $\ce{H2O}$ in STO-3G basis set. We investigate the impact of varying noise levels $\epsilon$ in the overlap estimation. For comparison, we apply finite measurements in two scenarios: (1) only during propagation (blue curve), and (2) for estimating all quantities (orange curve). The dashed red curve represents the exact ground state energy for each system, while the red shaded area corresponds to energies that lie within chemical accuracy with respect to the ground state energy. This figure is taken from \cite{kiser2024classical}.}
     \label{fig:afqmc_estimates_h2_h2o}
 \end{figure}
